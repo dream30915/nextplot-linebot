@@ -1,0 +1,11 @@
+{
+    "version": 2,
+    "buildCommand": "echo 'No build required'",
+    "outputDirectory": ".",
+    "rewrites": [
+        {
+            "source": "/api/:path*",
+            "destination": "/api/:path*"
+        }
+    ]
+}
