@@ -24,10 +24,21 @@ class SupabaseService
 
     public function __construct()
     {
-        $this->supabaseUrl = config('nextplot.supabase.url');
-        $this->anonKey = config('nextplot.supabase.anon_key');
-        $this->serviceRole = config('nextplot.supabase.service_role');
+        $this->supabaseUrl = config('nextplot.supabase.url') ?? '';
+        $this->serviceRole = config('nextplot.supabase.service_role') ?? '';
+
+        $anonKeyConfig = config('nextplot.supabase.anon_key');
+        $this->anonKey = !empty($anonKeyConfig) ? $anonKeyConfig : $this->serviceRole;
+
         $this->bucketName = config('nextplot.supabase.bucket_name', 'nextplot');
+
+        if (!$this->supabaseUrl || !$this->anonKey) {
+            Log::warning('Supabase configuration missing critical values', [
+                'url_set' => !empty($this->supabaseUrl),
+                'anon_key_set' => !empty($anonKeyConfig),
+                'service_role_set' => !empty($this->serviceRole),
+            ]);
+        }
     }
 
     /**

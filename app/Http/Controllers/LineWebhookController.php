@@ -19,14 +19,14 @@ use Illuminate\Support\Facades\Log;
  */
 class LineWebhookController extends Controller
 {
-    private NextPlotService $nextPlot;
-    private SupabaseService $supabase;
+    private ?NextPlotService $nextPlot;
+    private ?SupabaseService $supabase;
     private string $channelSecret;
     private string $accessToken;
     private bool $signatureRelaxed;
     private array $allowlist;
 
-    public function __construct(NextPlotService $nextPlot = null, SupabaseService $supabase = null)
+    public function __construct(?NextPlotService $nextPlot = null, ?SupabaseService $supabase = null)
     {
         // Allow graceful degradation for debugging
         try {
