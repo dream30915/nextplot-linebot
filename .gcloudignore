@@ -1,31 +1,8 @@
-# Git files
 .git
 .gitignore
 **/.git
 **/.gitignore
-
-# Node modules
 node_modules
-
-# Vendor (will be installed by composer in Docker)
 vendor
-
 # Do not exclude the entrypoint script
 !docker-entrypoint.sh
-vercel-link/
-vercel.json
-api/
-
-# Build artifacts
-public/build/
-resources/css/
-resources/js/
-
-# Tools and how-to guides
-tool/
-tools/
-how-to-guides/
-
-# Misc
-.DS_Store
-Thumbs.db
