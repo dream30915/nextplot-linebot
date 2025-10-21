@@ -43,6 +43,8 @@ phpunit.xml
 # Scripts
 *.ps1
 *.sh
+# CRITICAL: Include docker-entrypoint.sh
+!docker-entrypoint.sh
 
 # Build artifacts
 public/build/
