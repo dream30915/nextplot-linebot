@@ -24,8 +24,10 @@ COPY composer.json composer.lock /var/www/html/
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Copy application files (excluding .env - will use environment variables)
+# Copy application files AND entrypoint script (excluding .env - will use environment variables)
 COPY --chown=www-data:www-data . /var/www/html
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Remove .env if accidentally copied (production uses env vars)
 RUN rm -f /var/www/html/.env
@@ -52,13 +54,10 @@ RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/Allo
 ENV PORT=8080
 RUN sed -i "s/80/${PORT}/g" /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
-# Copy and setup entrypoint script
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8080/api/health || exit 1
 
 # Use custom entrypoint that configures Laravel at runtime
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
