@@ -1,5 +1,5 @@
-# Use official PHP image
-FROM php:8.2-fpm
+# Use official PHP Apache image (works standalone on Cloud Run)
+FROM php:8.2-apache
 
 # Set working directory
 WORKDIR /var/www/html

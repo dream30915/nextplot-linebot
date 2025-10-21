@@ -22,7 +22,20 @@ echo "โ… APP_KEY is configured"
 php artisan config:cache
 php artisan route:cache
 
-echo "โ… Laravel configured successfully"
+echo "✅ Laravel configured successfully"
 
-# Start PHP-FPM
-exec php-fpm
+# Configure Apache for Cloud Run
+echo "🌐 Configuring Apache..."
+a2enmod rewrite
+sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+# Set port from environment (Cloud Run uses PORT=8080)
+if [ ! -z "$PORT" ]; then
+    sed -i "s/80/${PORT}/g" /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+fi
+
+echo "✅ Apache configured"
+
+# Start Apache
+exec apache2-foreground
