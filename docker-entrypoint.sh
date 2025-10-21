@@ -26,16 +26,30 @@ echo "✅ Laravel configured successfully"
 
 # Configure Apache for Cloud Run
 echo "🌐 Configuring Apache..."
-a2enmod rewrite
-sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
-sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
 
 # Set port from environment (Cloud Run uses PORT=8080)
-if [ ! -z "$PORT" ]; then
-    sed -i "s/80/${PORT}/g" /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
-fi
+PORT="${PORT:-8080}"
+echo "📡 Configuring Apache to listen on PORT $PORT..."
 
-echo "✅ Apache configured"
+# Enable rewrite module
+a2enmod rewrite
+
+# Update DocumentRoot to Laravel public directory
+sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+
+# Update AllowOverride for .htaccess support
+sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+# Update VirtualHost port
+sed -i "s/<VirtualHost \*:80>/<VirtualHost *:${PORT}>/g" /etc/apache2/sites-available/000-default.conf
+
+# Update Listen port
+sed -i "s/Listen 80/Listen ${PORT}/g" /etc/apache2/ports.conf
+
+# Set ServerName to suppress warning
+echo "ServerName 127.0.0.1" >> /etc/apache2/apache2.conf
+
+echo "✅ Apache configured to listen on PORT $PORT"
 
 # Start Apache
 exec apache2-foreground
