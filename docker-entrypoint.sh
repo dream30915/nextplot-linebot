@@ -1,7 +1,7 @@
-#!/bin/bash
+﻿#!/bin/bash
 set -e
 
-echo "🚀 Starting Laravel application..."
+echo "๐€ Starting Laravel application..."
 
 # Wait a moment for environment variables to be available
 sleep 2
@@ -12,17 +12,17 @@ php artisan cache:clear
 
 # Verify APP_KEY is set
 if [ -z "$APP_KEY" ]; then
-    echo "❌ ERROR: APP_KEY not set!"
+    echo "โ ERROR: APP_KEY not set!"
     exit 1
 fi
 
-echo "✅ APP_KEY is configured"
+echo "โ… APP_KEY is configured"
 
 # Cache configurations for better performance (now with env vars available)
 php artisan config:cache
 php artisan route:cache
 
-echo "✅ Laravel configured successfully"
+echo "โ… Laravel configured successfully"
 
 # Start PHP-FPM
 exec php-fpm
