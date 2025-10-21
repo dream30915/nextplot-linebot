@@ -35,3 +35,13 @@ EXPOSE 8080
 
 # Use entrypoint
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+# Ensure entrypoint script is moved into PATH and executable
+RUN if [ -f ./docker-entrypoint.sh ]; then \
+      mv ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh; \
+      chmod +x /usr/local/bin/docker-entrypoint.sh; \
+    fi
+
+ENV PORT=8080
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
