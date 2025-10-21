@@ -1,5 +1,5 @@
-# Use official PHP Apache image (works standalone on Cloud Run)
-FROM php:8.2-apache
+# Use official PHP CLI image (for PHP built-in server on Cloud Run)
+FROM php:8.2-cli
 
 # Set working directory
 WORKDIR /var/www/html
