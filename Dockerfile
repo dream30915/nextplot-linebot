@@ -19,10 +19,12 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Copy composer files and install deps (use cache)
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
-# Copy application files
+# Copy application files BEFORE composer install (artisan needed for post-install scripts)
 COPY . .
+
+# Now run composer install (artisan file is now available)
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts
 
 # Copy entrypoint and ensure executable
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
