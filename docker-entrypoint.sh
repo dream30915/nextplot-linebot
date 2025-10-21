@@ -24,5 +24,5 @@ php artisan route:cache
 
 echo "✅ Laravel configured successfully"
 
-# Start Apache
-exec apache2-foreground
+# Start PHP-FPM
+exec php-fpm
