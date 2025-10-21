@@ -26,9 +26,9 @@ COPY . .
 # Now run composer install (artisan file is now available)
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts
 
-# Copy entrypoint and ensure executable
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Ensure entrypoint is executable (already copied in COPY . .)
+RUN chmod +x /var/www/html/docker-entrypoint.sh && \
+    cp /var/www/html/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 # Expose the port Cloud Run uses (if using built-in server)
 EXPOSE 8080
