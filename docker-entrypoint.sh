@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+PORT=${PORT:-8080}
+
+# Best-effort permissions for Laravel writable dirs
+if [ -d /var/www/html/storage ]; then
+  chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache || true
+  chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache || true
+fi
+
+# Start PHP built-in server to serve the Laravel public directory
+if [ -d /var/www/html/public ]; then
+  echo "Starting PHP built-in server on port ${PORT}, serving /var/www/html/public"
+  exec php -S 0.0.0.0:${PORT} -t /var/www/html/public
+else
+  echo "Warning: /var/www/html/public not found. Falling back to php-fpm"
+  exec php-fpm --nodaemonize
+fi

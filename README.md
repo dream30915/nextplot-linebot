@@ -1,61 +1,281 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🤖 NextPlot LINE Bot
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+NextPlot คือ LINE Bot ที่ใช้ Laravel 12 และ AI เพื่อตอบคำถามและให้บริการผู้ใช้งานผ่าน LINE Messaging API
 
-## About Laravel
+## ✨ คุณสมบัติหลัก
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- 🤖 **AI-Powered Responses** - ใช้ NLP ในการค้นหาและตอบคำถาม
+- 📊 **NextPlot Integration** - เชื่อมต่อกับระบบ NextPlot สำหรับข้อมูลและการวิเคราะห์
+- ☁️ **Multi-Cloud Architecture** - รองรับ Google Cloud Run (Primary) และ Vercel (Backup)
+- 💾 **Supabase Storage** - จัดเก็บข้อมูลและไฟล์บน Supabase
+- 🔒 **Secure & Validated** - มีการตรวจสอบ LINE Signature และ User Allowlist
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🏗️ สถาปัตยกรรม
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```
+┌─────────────┐
+│  LINE User  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────────────────────────┐
+│     LINE Messaging API Platform     │
+└──────┬──────────────────────────────┘
+       │
+       │ Webhook (Primary or Backup)
+       │
+    ┌──┴────────────────────┐
+    │                       │
+    ▼                       ▼
+┌─────────────────┐   ┌──────────────┐
+│  Cloud Run      │   │   Vercel     │
+│  (Primary)      │   │   (Backup)   │
+│  Laravel App    │   │   Serverless │
+└────────┬────────┘   └──────┬───────┘
+         │                   │
+         └───────┬───────────┘
+                 │
+                 ▼
+         ┌──────────────┐
+         │   Supabase   │
+         │   Storage    │
+         └──────────────┘
+```
 
-## Learning Laravel
+**Primary**: Google Cloud Run (2M requests/month Free Tier)  
+**Backup**: Vercel (100GB bandwidth/month Free Tier)  
+**Storage**: Supabase (Bucket: `nextplot`)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🚀 Quick Start
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 1. ติดตั้ง Dependencies
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```powershell
+# PHP Dependencies
+composer install
 
-## Laravel Sponsors
+# Node.js Dependencies (ถ้ามี)
+npm install
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 2. ตั้งค่า Environment Variables
 
-### Premium Partners
+สร้างไฟล์ `.env` จาก `.env.example`:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```powershell
+cp .env.example .env
+```
 
-## Contributing
+แก้ไขค่าเหล่านี้ในไฟล์ `.env`:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```env
+# LINE Messaging API
+LINE_CHANNEL_ACCESS_TOKEN="your-channel-access-token"
+LINE_CHANNEL_SECRET="your-channel-secret"
+LINE_USER_ID_ALLOWLIST="user-id-1,user-id-2"
 
-## Code of Conduct
+# Supabase
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY="your-anon-key"
+SUPABASE_SERVICE_ROLE="your-service-role-key"
+SUPABASE_BUCKET_NAME=nextplot
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 3. รัน Development Server
 
-## Security Vulnerabilities
+```powershell
+# วิธี 1: รัน Laravel + Cloudflare Tunnel พร้อมกัน
+.\run-all.ps1
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# วิธี 2: รัน Laravel เท่านั้น
+php artisan serve
+```
 
-## License
+### 4. ทดสอบระบบ
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```powershell
+# รันการทดสอบครบวงจร (8 tests)
+.\test-all.ps1
+```
+
+## 📋 สคริปต์ที่มีให้ใช้งาน
+
+| สคริปต์ | คำอธิบาย |
+|---------|----------|
+| `.\test-all.ps1` | ทดสอบการเชื่อมต่อทุก service (8 tests) |
+| `.\run-all.ps1` | รัน Laravel + Cloudflare Tunnel |
+| `.\run-dev.ps1` | รัน Laravel development server |
+| `.\switch-webhook.ps1` | สลับ LINE webhook ระหว่าง Cloud Run และ Vercel |
+| `.\setup.ps1` | ติดตั้งและตั้งค่าโปรเจกต์ครั้งแรก |
+
+## 🔄 การจัดการ Webhook
+
+### ตรวจสอบสถานะ Webhook ปัจจุบัน
+
+```powershell
+.\switch-webhook.ps1 -Target status
+```
+
+### สลับไปใช้ Cloud Run (Production)
+
+```powershell
+.\switch-webhook.ps1 -Target cloudrun
+```
+
+### สลับไปใช้ Vercel (Backup)
+
+```powershell
+.\switch-webhook.ps1 -Target vercel
+```
+
+## 🧪 การทดสอบ
+
+### ทดสอบทุก Service
+
+```powershell
+.\test-all.ps1
+```
+
+ระบบจะทดสอบ:
+
+- ✅ `.env` configuration
+- ✅ Laravel CLI
+- ✅ Laravel HTTP server
+- ✅ Supabase connection
+- ✅ LINE Messaging API
+- ✅ Vercel deployment
+- ✅ Google Cloud Run
+- ✅ Google Cloud Build
+
+### ทดสอบด้วย Unit Tests
+
+```powershell
+php artisan test
+```
+
+## 📦 Deployment
+
+### Deploy ไป Google Cloud Run
+
+```powershell
+# Deploy ด้วย Cloud Build
+gcloud builds submit --config cloudbuild.yaml
+
+# หรือ Deploy โดยตรง
+gcloud run deploy nextplot-linebot --source .
+```
+
+### Deploy ไป Vercel
+
+```powershell
+# Deploy to Production
+vercel --prod
+
+# Preview Deployment
+vercel
+```
+
+## 🛠️ Development Workflow
+
+### 1. Local Development
+
+```powershell
+# เริ่ม Laravel server
+php artisan serve
+
+# เริ่ม Cloudflare Tunnel (สำหรับทดสอบ webhook)
+.\run-all.ps1
+```
+
+### 2. Testing
+
+```powershell
+# รันการทดสอบ
+.\test-all.ps1
+
+# ทดสอบ webhook จาก LINE
+# ไปที่ LINE Developers Console > Webhook Settings > Test
+```
+
+### 3. Deployment
+
+```powershell
+# Push code ขึ้น GitHub
+git add .
+git commit -m "Update features"
+git push
+
+# Deploy to Cloud Run
+gcloud builds submit --config cloudbuild.yaml
+
+# Deploy to Vercel (backup)
+vercel --prod
+```
+
+## 📝 เอกสารเพิ่มเติม
+
+- [DEPLOYMENT.md](DEPLOYMENT.md) - คู่มือการ deploy และ failover
+- [QUICK_START.md](QUICK_START.md) - เริ่มต้นใช้งานอย่างรวดเร็ว
+- [SETUP_GUIDE.md](SETUP_GUIDE.md) - คู่มือการติดตั้งแบบละเอียด
+- [LARAVEL_SETUP.md](LARAVEL_SETUP.md) - การตั้งค่า Laravel
+- [NEXTPLOT.md](NEXTPLOT.md) - เอกสาร NextPlot API
+
+## 🔧 Troubleshooting
+
+### Webhook ไม่ทำงาน
+
+```powershell
+# 1. ตรวจสอบ webhook URL ปัจจุบัน
+.\switch-webhook.ps1 -Target status
+
+# 2. ตรวจสอบการเชื่อมต่อ Cloud Run
+.\test-all.ps1
+
+# 3. ตรวจสอบ logs
+gcloud run logs read nextplot-linebot --limit 50
+```
+
+### Supabase Connection Error
+
+```powershell
+# ตรวจสอบ JWT keys ใน .env ว่าไม่มี prefix "anon:" หรือ "service_role:"
+# ควรเป็น: SUPABASE_ANON_KEY="eyJhbGci..."
+```
+
+### LINE Signature Validation Failed
+
+```env
+# ตั้งค่าใน .env
+LINE_SIGNATURE_RELAXED="true"
+```
+
+## 🌟 Free Tier Limits
+
+| Service | Free Tier |
+|---------|-----------|
+| Google Cloud Run | 2M requests/month |
+| Vercel | 100GB bandwidth/month |
+| Supabase | 500MB database + 1GB storage |
+| Cloudflare Tunnel | Unlimited (for development) |
+
+## 🔐 Security
+
+- ไฟล์ `.env` ถูกระบุใน `.gitignore` แล้ว - **ห้าม commit ขึ้น Git**
+- LINE Signature จะถูก verify ทุก webhook request
+- User Allowlist จำกัดผู้ใช้ที่สามารถใช้ bot ได้
+
+## 📞 Support
+
+หากมีปัญหาหรือคำถาม:
+
+1. ตรวจสอบ [DEPLOYMENT.md](DEPLOYMENT.md) สำหรับคำแนะนำ failover
+2. รัน `.\test-all.ps1` เพื่อวินิจฉัยปัญหา
+3. ตรวจสอบ Cloud Run logs: `gcloud run logs read nextplot-linebot`
+
+## 📄 License
+
+This project is built on Laravel which is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+---
+
+Made with ❤️ using Laravel 12, LINE Messaging API, and Supabase
