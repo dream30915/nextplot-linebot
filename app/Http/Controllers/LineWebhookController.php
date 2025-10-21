@@ -26,10 +26,20 @@ class LineWebhookController extends Controller
     private bool $signatureRelaxed;
     private array $allowlist;
 
-    public function __construct(NextPlotService $nextPlot, SupabaseService $supabase)
+    public function __construct(NextPlotService $nextPlot = null, SupabaseService $supabase = null)
     {
-        $this->nextPlot = $nextPlot;
-        $this->supabase = $supabase;
+        // Allow graceful degradation for debugging
+        try {
+            $this->nextPlot = $nextPlot ?? app(NextPlotService::class);
+            $this->supabase = $supabase ?? app(SupabaseService::class);
+        } catch (\Exception $e) {
+            Log::error('[LINE Webhook] Service initialization failed', [
+                'error' => $e->getMessage(),
+            ]);
+            $this->nextPlot = null;
+            $this->supabase = null;
+        }
+        
         $this->channelSecret = config('nextplot.line.channel_secret');
         $this->accessToken = config('nextplot.line.access_token');
         $this->signatureRelaxed = config('nextplot.line.signature_relaxed', false);
@@ -44,8 +54,21 @@ class LineWebhookController extends Controller
         try {
             Log::info('[LINE Webhook] Request received', [
                 'method' => $request->method(),
-                'headers' => $request->headers->all(),
+                'url' => $request->fullUrl(),
+                'has_signature' => $request->hasHeader('x-line-signature'),
             ]);
+
+            // RELAX MODE: Return 200 OK immediately for debugging
+            if (env('LINE_WEBHOOK_RELAX_VERIFY', false)) {
+                Log::info('[LINE Webhook] RELAX MODE: Returning 200 OK');
+                return response()->json(['ok' => true, 'mode' => 'relax']);
+            }
+
+            // Check if services are initialized
+            if (!$this->nextPlot || !$this->supabase) {
+                Log::error('[LINE Webhook] Services not initialized');
+                return response()->json(['error' => 'Services not initialized'], 500);
+            }
 
             // Verify signature
             if (!$this->signatureRelaxed) {
@@ -68,7 +91,6 @@ class LineWebhookController extends Controller
 
             Log::info('[LINE Webhook] Events received', [
                 'count' => count($events),
-                'events' => $events,
             ]);
 
             // Process each event
@@ -78,11 +100,23 @@ class LineWebhookController extends Controller
 
             return response()->json(['ok' => true]);
 
-        } catch (\Exception $e) {
-            Log::error('[LINE Webhook] Error', [
+        } catch (\Throwable $e) {
+            Log::error('[LINE Webhook] Unhandled error', [
                 'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
+            
+            // Return 200 to prevent LINE from retrying during debugging
+            if (env('APP_DEBUG', false)) {
+                return response()->json([
+                    'ok' => false,
+                    'error' => $e->getMessage(),
+                    'debug' => true
+                ], 200);
+            }
+            
             return response()->json(['error' => 'Internal server error'], 500);
         }
     }
