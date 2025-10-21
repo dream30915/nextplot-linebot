@@ -1,11 +1,25 @@
 {
     "version": 2,
-    "buildCommand": "echo 'No build required'",
+    "buildCommand": "echo 'Build complete'",
     "outputDirectory": ".",
+    "framework": null,
+    "regions": [
+        "sin1"
+    ],
+    "env": {
+        "APP_NAME": "NextPlot",
+        "APP_ENV": "production",
+        "APP_DEBUG": "false"
+    },
     "rewrites": [
         {
-            "source": "/api/:path*",
-            "destination": "/api/:path*"
+            "source": "/api/line/webhook",
+            "destination": "/api/webhook"
         }
-    ]
+    ],
+    "functions": {
+        "api/**/*.js": {
+            "maxDuration": 10
+        }
+    }
 }
