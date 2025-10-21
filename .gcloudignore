@@ -1,67 +1,8 @@
-# Git files
 .git
 .gitignore
-.github/
-
-# Node modules
-node_modules/
-npm-debug.log
-package-lock.json
-
-# Vendor (will be installed by composer in Docker)
-vendor/
-
-# Environment file (use Secret Manager instead)
-.env
-.env.local
-.env.*.local
-
-# Laravel storage and cache
-storage/logs/
-storage/framework/cache/
-storage/framework/sessions/
-storage/framework/views/
-bootstrap/cache/*.php
-database/database.sqlite
-
-# Development files
-.env.example
-.editorconfig
-.styleci.yml
-phpunit.xml
-
-# Documentation
-*.md
-!README.md
-COPILOT_CONTEXT.md
-
-# Scripts
-*.ps1
+**/.git
+**/.gitignore
+node_modules
+vendor
+# Do not exclude the entrypoint script
 !docker-entrypoint.sh
-
-# Test files
-tests/
-.phpunit.result.cache
-
-# IDE
-.vscode/
-.idea/
-
-# Vercel
-vercel-link/
-vercel.json
-api/
-
-# Build artifacts
-public/build/
-resources/css/
-resources/js/
-
-# Tools and how-to guides
-tool/
-tools/
-how-to-guides/
-
-# Misc
-.DS_Store
-Thumbs.db
