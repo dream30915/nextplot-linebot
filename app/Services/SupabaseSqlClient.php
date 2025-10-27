@@ -1,53 +1,4 @@
 <?php
-/*[{
-	"resource": "/c:/Users/msi/Desktop/nextplot-linebot/app/Http/Controllers/LineWebhookController.php",
-	"owner": "_generated_diagnostic_collection_name_#4",
-	"code": "PHP6601",
-	"severity": 2,
-	"message": "Name '\\Throwable' can be simplified with 'Throwable'",
-	"source": "PHP",
-	"startLineNumber": 131,
-	"startColumn": 18,
-	"endLineNumber": 131,
-	"endColumn": 28,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/msi/Desktop/nextplot-linebot/app/Http/Controllers/LineWebhookController.php",
-	"owner": "_generated_diagnostic_collection_name_#4",
-	"code": "PHP6601",
-	"severity": 2,
-	"message": "Name '\\Throwable' can be simplified with 'Throwable'",
-	"source": "PHP",
-	"startLineNumber": 131,
-	"startColumn": 18,
-	"endLineNumber": 131,
-	"endColumn": 28,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/msi/Desktop/nextplot-linebot/app/Http/Controllers/LineWebhookController.php",
-	"owner": "_generated_diagnostic_collection_name_#4",
-	"code": "PHP6601",
-	"severity": 2,
-	"message": "Name '\\Throwable' can be simplified with 'Throwable'",
-	"source": "PHP",
-	"startLineNumber": 131,
-	"startColumn": 18,
-	"endLineNumber": 131,
-	"endColumn": 28,
-	"origin": "extHost1"
-},{
-	"resource": "/C:/Users/msi/Desktop/nextplot-linebot/app/Http/Controllers/LineWebhookController.php",
-	"owner": "_generated_diagnostic_collection_name_#4",
-	"code": "PHP6601",
-	"severity": 2,
-	"message": "Name '\\Throwable' can be simplified with 'Throwable'",
-	"source": "PHP",
-	"startLineNumber": 131,
-	"startColumn": 18,
-	"endLineNumber": 131,
-	"endColumn": 28,
-	"origin": "extHost1"
-}]*/
 
 namespace App\Services;
 
@@ -68,6 +19,9 @@ class SupabaseSqlClient
 		return $this->baseUrl !== '' && $this->serviceKey !== '';
 	}
 
+	/**
+	 * @return array<int, array<string, mixed>>
+	 */
 	public function query(string $sql): array
 	{
 		if (! $this->isConfigured()) {
