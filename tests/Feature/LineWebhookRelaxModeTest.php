@@ -12,11 +12,16 @@ class LineWebhookRelaxModeTest extends TestCase
     {
         parent::setUp();
         // Bind minimal fakes so controller constructor succeeds
-        $this->app->instance(NextPlotService::class, new class extends NextPlotService {
-            public function __construct() {}
-            public function processEvent(array $event): ?array { return null; }
+        $this->app->instance(NextPlotService::class, new class () extends NextPlotService {
+            public function __construct()
+            {
+            }
+            public function processEvent(array $event): ?array
+            {
+                return null;
+            }
         });
-    // Use real SupabaseService (not invoked in relax mode)
+        // Use real SupabaseService (not invoked in relax mode)
     }
 
     /** @test */
@@ -26,8 +31,8 @@ class LineWebhookRelaxModeTest extends TestCase
         putenv('LINE_WEBHOOK_RELAX_VERIFY=true');
 
         $payload = [ 'events' => [] ];
-        $body = json_encode($payload);
-        $server = [ 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'];
+        $body    = json_encode($payload);
+        $server  = [ 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'];
 
         $response = $this->call('POST', '/api/line/webhook', [], [], [], $server, $body);
 

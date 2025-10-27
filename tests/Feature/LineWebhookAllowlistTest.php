@@ -32,19 +32,19 @@ class LineWebhookAllowlistTest extends TestCase
 
         $payload = [
             'events' => [[
-                'type' => 'message',
-                'source' => ['userId' => 'Uallowed'],
+                'type'    => 'message',
+                'source'  => ['userId' => 'Uallowed'],
                 'message' => ['type' => 'text', 'text' => 'hello'],
-            ]]
+            ]],
         ];
 
-        $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $body      = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $signature = base64_encode(hash_hmac('sha256', $body, 'test_secret', true));
 
         $server = [
-            'CONTENT_TYPE' => 'application/json',
+            'CONTENT_TYPE'          => 'application/json',
             'HTTP_X_LINE_SIGNATURE' => $signature,
-            'HTTP_ACCEPT' => 'application/json',
+            'HTTP_ACCEPT'           => 'application/json',
         ];
 
         $response = $this->call('POST', '/api/line/webhook', [], [], [], $server, $body);
@@ -60,19 +60,19 @@ class LineWebhookAllowlistTest extends TestCase
 
         $payload = [
             'events' => [[
-                'type' => 'message',
-                'source' => ['userId' => 'Ublocked'],
+                'type'    => 'message',
+                'source'  => ['userId' => 'Ublocked'],
                 'message' => ['type' => 'text', 'text' => 'hello'],
-            ]]
+            ]],
         ];
 
-        $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $body      = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $signature = base64_encode(hash_hmac('sha256', $body, 'test_secret', true));
 
         $server = [
-            'CONTENT_TYPE' => 'application/json',
+            'CONTENT_TYPE'          => 'application/json',
             'HTTP_X_LINE_SIGNATURE' => $signature,
-            'HTTP_ACCEPT' => 'application/json',
+            'HTTP_ACCEPT'           => 'application/json',
         ];
 
         $response = $this->call('POST', '/api/line/webhook', [], [], [], $server, $body);

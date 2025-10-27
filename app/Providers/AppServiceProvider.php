@@ -2,9 +2,10 @@
 
 namespace App\Providers;
 
-use App\Services\SupabaseSqlClient;
-use App\Services\SupabaseService;
+use App\Services\ConversationLogger;
 use App\Services\NextPlotService;
+use App\Services\SupabaseService;
+use App\Services\SupabaseSqlClient;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
             $config = $app['config']->get('services.supabase', []);
 
             return new SupabaseSqlClient(
-                $config['url'] ?? '',
+                $config['url']              ?? '',
                 $config['service_role_key'] ?? '',
             );
         });
@@ -29,9 +30,17 @@ class AppServiceProvider extends ServiceProvider
             return new SupabaseService();
         });
 
+        // Register ConversationLogger
+        $this->app->singleton(ConversationLogger::class, function ($app) {
+            return new ConversationLogger();
+        });
+
         // Register NextPlotService (depends on SupabaseService)
         $this->app->singleton(NextPlotService::class, function ($app) {
-            return new NextPlotService($app->make(SupabaseService::class));
+            return new NextPlotService(
+                $app->make(SupabaseService::class),
+                $app->make(ConversationLogger::class),
+            );
         });
     }
 

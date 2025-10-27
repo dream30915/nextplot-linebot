@@ -42,8 +42,8 @@ class LineWebhookController extends Controller
             $this->supabase = null;
         }
 
-        $this->channelSecret = config('nextplot.line.channel_secret');
-        $this->accessToken = config('nextplot.line.access_token');
+        $this->channelSecret    = config('nextplot.line.channel_secret');
+        $this->accessToken      = config('nextplot.line.access_token');
         $this->signatureRelaxed = config('nextplot.line.signature_relaxed', false);
 
         // Normalize allowlist: support empty env and remove empty/whitespace items
@@ -62,8 +62,8 @@ class LineWebhookController extends Controller
     {
         try {
             Log::info('[LINE Webhook] Request received', [
-                'method' => $request->method(),
-                'url' => $request->fullUrl(),
+                'method'        => $request->method(),
+                'url'           => $request->fullUrl(),
                 'has_signature' => $request->hasHeader('x-line-signature'),
             ]);
 
@@ -95,7 +95,7 @@ class LineWebhookController extends Controller
             }
 
             // Parse body
-            $body = $request->json()->all();
+            $body   = $request->json()->all();
             $events = $body['events'] ?? [];
 
             Log::info('[LINE Webhook] Events received', [
@@ -112,17 +112,17 @@ class LineWebhookController extends Controller
         } catch (\Throwable $e) {
             Log::error('[LINE Webhook] Unhandled error', [
                 'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
             // Return 200 to prevent LINE from retrying during debugging
             if (env('APP_DEBUG', false)) {
                 return response()->json([
-                    'ok' => false,
+                    'ok'    => false,
                     'error' => $e->getMessage(),
-                    'debug' => true
+                    'debug' => true,
                 ], 200);
             }
 
@@ -139,12 +139,12 @@ class LineWebhookController extends Controller
     private function processEvent(array $event): void
     {
         try {
-            $eventType = $event['type'] ?? '';
-            $userId = $event['source']['userId'] ?? 'unknown';
-            $replyToken = $event['replyToken'] ?? null;
+            $eventType  = $event['type']             ?? '';
+            $userId     = $event['source']['userId'] ?? 'unknown';
+            $replyToken = $event['replyToken']       ?? null;
 
             Log::info('[LINE Webhook] Processing event', [
-                'type' => $eventType,
+                'type'   => $eventType,
                 'userId' => $userId,
             ]);
 
@@ -195,29 +195,29 @@ class LineWebhookController extends Controller
 
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$this->accessToken}",
-                'Content-Type' => 'application/json',
+                'Content-Type'  => 'application/json',
             ])->post($url, [
                 'replyToken' => $replyToken,
-                'messages' => [$message],
+                'messages'   => [$message],
             ]);
 
             if ($response->successful()) {
                 Log::info('[LINE Webhook] Reply sent', [
                     'replyToken' => $replyToken,
-                    'message' => $message,
+                    'message'    => $message,
                 ]);
             } else {
                 Log::error('[LINE Webhook] Reply failed', [
                     'replyToken' => $replyToken,
-                    'status' => $response->status(),
-                    'body' => $response->body(),
+                    'status'     => $response->status(),
+                    'body'       => $response->body(),
                 ]);
             }
 
         } catch (\Exception $e) {
             Log::error('[LINE Webhook] Reply error', [
                 'replyToken' => $replyToken,
-                'error' => $e->getMessage(),
+                'error'      => $e->getMessage(),
             ]);
         }
     }

@@ -20,17 +20,30 @@ class LineWebhookHelpAndLoggingTest extends TestCase
 
         // Replace ConversationLogger with a stub writing to a temp file within storage/app
         $this->app->bind(ConversationLogger::class, function () {
-            return new class extends ConversationLogger {
-                public function __construct() {}
+            return new class () extends ConversationLogger {
+                public function __construct()
+                {
+                }
             };
         });
 
         // Light stub for SupabaseService to avoid real HTTP
-        $this->app->instance(SupabaseService::class, new class extends SupabaseService {
-            public function __construct() {}
-            public function insertRow(string $table, array $data): ?array { return ['id' => 1] + $data; }
-            public function uploadBuffer(string $bucket, string $path, string $content, string $contentType): bool { return true; }
-            public function signPath(string $bucket, string $path, int $expiresIn = 3600): ?string { return 'https://signed.example/url'; }
+        $this->app->instance(SupabaseService::class, new class () extends SupabaseService {
+            public function __construct()
+            {
+            }
+            public function insertRow(string $table, array $data): ?array
+            {
+                return ['id' => 1] + $data;
+            }
+            public function uploadBuffer(string $bucket, string $path, string $content, string $contentType): bool
+            {
+                return true;
+            }
+            public function signPath(string $bucket, string $path, int $expiresIn = 3600): ?string
+            {
+                return 'https://signed.example/url';
+            }
         });
 
         // Use real NextPlotService (DI will get above stubs)
@@ -42,10 +55,10 @@ class LineWebhookHelpAndLoggingTest extends TestCase
         $payload = [
             'events' => [
                 [
-                    'type' => 'message',
+                    'type'       => 'message',
                     'replyToken' => 'rt1',
-                    'source' => ['userId' => 'U1'],
-                    'message' => ['type' => 'text', 'text' => 'help'],
+                    'source'     => ['userId' => 'U1'],
+                    'message'    => ['type' => 'text', 'text' => 'help'],
                 ],
             ],
         ];
@@ -61,10 +74,10 @@ class LineWebhookHelpAndLoggingTest extends TestCase
         $payload = [
             'events' => [
                 [
-                    'type' => 'message',
+                    'type'       => 'message',
                     'replyToken' => 'rt2',
-                    'source' => ['userId' => 'U2'],
-                    'message' => ['type' => 'text', 'text' => 'โฉนด 1234'],
+                    'source'     => ['userId' => 'U2'],
+                    'message'    => ['type' => 'text', 'text' => 'โฉนด 1234'],
                 ],
             ],
         ];

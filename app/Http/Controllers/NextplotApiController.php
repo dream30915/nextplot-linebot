@@ -11,7 +11,7 @@ class NextplotApiController extends Controller
     public function search(Request $request): JsonResponse
     {
         $qRaw = $request->query('q');
-        $q = is_string($qRaw) ? $qRaw : '';
+        $q    = is_string($qRaw) ? $qRaw : '';
 
         return response()->json([
             'ok'   => true,

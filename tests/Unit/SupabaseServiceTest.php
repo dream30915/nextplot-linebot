@@ -23,7 +23,7 @@ class SupabaseServiceTest extends TestCase
             'https://example.supabase.co/rest/v1/*' => Http::response('', 500),
         ]);
 
-        $svc = new SupabaseService();
+        $svc    = new SupabaseService();
         $result = $svc->insertRow('messages', ['a' => 1]);
         $this->assertNull($result);
     }
@@ -36,7 +36,7 @@ class SupabaseServiceTest extends TestCase
         ]);
 
         $svc = new SupabaseService();
-        $ok = $svc->uploadBuffer('nextplot', 'path/file.jpg', 'bytes', 'image/jpeg');
+        $ok  = $svc->uploadBuffer('nextplot', 'path/file.jpg', 'bytes', 'image/jpeg');
         $this->assertFalse($ok);
     }
 

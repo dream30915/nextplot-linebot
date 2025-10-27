@@ -8,52 +8,52 @@ use RuntimeException;
 
 class SupabaseSqlClient
 {
-	public function __construct(
-		private readonly string $baseUrl,
-		private readonly string $serviceKey,
-	) {
-	}
+    public function __construct(
+        private readonly string $baseUrl,
+        private readonly string $serviceKey,
+    ) {
+    }
 
-	public function isConfigured(): bool
-	{
-		return $this->baseUrl !== '' && $this->serviceKey !== '';
-	}
+    public function isConfigured(): bool
+    {
+        return $this->baseUrl !== '' && $this->serviceKey !== '';
+    }
 
-	/**
-	 * @return array<int, array<string, mixed>>
-	 */
-	public function query(string $sql): array
-	{
-		if (! $this->isConfigured()) {
-			throw new RuntimeException('Supabase credentials are not configured.');
-		}
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function query(string $sql): array
+    {
+        if (! $this->isConfigured()) {
+            throw new RuntimeException('Supabase credentials are not configured.');
+        }
 
-		$endpoint = rtrim($this->baseUrl, '/') . '/postgres/v1/query';
+        $endpoint = rtrim($this->baseUrl, '/') . '/postgres/v1/query';
 
-		$response = Http::withHeaders([
-			'apikey' => $this->serviceKey,
-			'Authorization' => 'Bearer ' . $this->serviceKey,
-		])->acceptJson()->post($endpoint, [
-			'query' => $sql,
-		]);
+        $response = Http::withHeaders([
+            'apikey'        => $this->serviceKey,
+            'Authorization' => 'Bearer ' . $this->serviceKey,
+        ])->acceptJson()->post($endpoint, [
+            'query' => $sql,
+        ]);
 
-		if (! $response->successful()) {
-			Log::warning('Supabase SQL query failed', [
-				'status' => $response->status(),
-				'body' => $response->body(),
-			]);
+        if (! $response->successful()) {
+            Log::warning('Supabase SQL query failed', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
 
-			throw new RuntimeException('Supabase query failed with status ' . $response->status());
-		}
+            throw new RuntimeException('Supabase query failed with status ' . $response->status());
+        }
 
-		$payload = $response->json();
+        $payload = $response->json();
 
-		if (! is_array($payload)) {
-			return [];
-		}
+        if (! is_array($payload)) {
+            return [];
+        }
 
-		$data = $payload['data'] ?? null;
+        $data = $payload['data'] ?? null;
 
-		return is_array($data) ? $data : [];
-	}
+        return is_array($data) ? $data : [];
+    }
 }

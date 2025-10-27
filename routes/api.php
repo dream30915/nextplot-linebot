@@ -1,9 +1,9 @@
 <?php
 
+use App\Http\Controllers\LineWebhookController;
+use App\Http\Controllers\NextplotApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\NextplotApiController;
-use App\Http\Controllers\LineWebhookController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -12,14 +12,14 @@ Route::get('/user', function (Request $request) {
 // Health check endpoint
 Route::get('/health', function () {
     return response()->json([
-        'status' => 'healthy',
-        'service' => 'laravel',
+        'status'    => 'healthy',
+        'service'   => 'laravel',
         'timestamp' => now()->toIso8601String(),
-        'version' => app()->version(),
-        'env' => [
+        'version'   => app()->version(),
+        'env'       => [
             'supabase' => config('services.supabase.url') ? 'configured' : 'missing',
-            'line' => config('services.line.channel_access_token') ? 'configured' : 'missing',
-        ]
+            'line'     => config('services.line.channel_access_token') ? 'configured' : 'missing',
+        ],
     ]);
 });
 

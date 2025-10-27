@@ -4,6 +4,10 @@ namespace App\Services;
 
 class FinalizeChecker
 {
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status:string, notes: array<int, string>}
+     */
     public function check(array $payload): array
     {
         $code = trim((string)($payload['code'] ?? ''));
@@ -11,25 +15,25 @@ class FinalizeChecker
         $text = (string)($payload['text'] ?? '');
 
         $status = 'pending';
-        $notes = [];
+        $notes  = [];
 
         if ($code === '') {
-            $status = 'draft';
+            $status  = 'draft';
             $notes[] = 'Missing CODE -> Draft';
         }
 
         if ($deed === '') {
             if (preg_match('/\bdeed\s+(\d+)\s*plots\b/i', $text)) {
-                $status = 'pending-deedlist';
+                $status  = 'pending-deedlist';
                 $notes[] = 'Declared deed count but missing numbers -> Pending-DeedList';
             } else {
-                $status = $status === 'draft' ? 'draft' : 'pending-ocr';
+                $status  = $status === 'draft' ? 'draft' : 'pending-ocr';
                 $notes[] = 'Missing deed number -> Pending-OCR';
             }
         }
 
         if ($status === 'pending' && $code && $deed) {
-            $status = 'finalized';
+            $status  = 'finalized';
             $notes[] = 'Ready to finalize';
         }
 

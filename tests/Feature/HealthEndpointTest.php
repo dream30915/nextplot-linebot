@@ -13,7 +13,7 @@ class HealthEndpointTest extends TestCase
 
         $response->assertStatus(200)
                  ->assertJsonStructure([
-                     'status', 'service', 'timestamp', 'version', 'env' => ['supabase', 'line']
+                     'status', 'service', 'timestamp', 'version', 'env' => ['supabase', 'line'],
                  ]);
     }
 }

@@ -28,10 +28,10 @@ class NextPlotService
 
     public function __construct(SupabaseService $supabase, ConversationLogger $logger)
     {
-        $this->supabase = $supabase;
+        $this->supabase        = $supabase;
         $this->lineAccessToken = config('nextplot.line.access_token');
-        $this->bucketName = config('nextplot.supabase.bucket_name', 'nextplot');
-        $this->logger = $logger;
+        $this->bucketName      = config('nextplot.supabase.bucket_name', 'nextplot');
+        $this->logger          = $logger;
     }
 
     /**
@@ -46,11 +46,11 @@ class NextPlotService
      */
     public function processEvent(array $event): ?array
     {
-        $eventType = $event['type'] ?? '';
-        $userId = $event['source']['userId'] ?? 'unknown';
+        $eventType = $event['type']             ?? '';
+        $userId    = $event['source']['userId'] ?? 'unknown';
 
-        Log::info("[NextPlot] Processing event", [
-            'type' => $eventType,
+        Log::info('[NextPlot] Processing event', [
+            'type'   => $eventType,
             'userId' => $userId,
         ]);
 
@@ -62,7 +62,7 @@ class NextPlotService
                 return $this->handlePostback($event);
 
             default:
-                Log::info("[NextPlot] Unhandled event type", ['type' => $eventType]);
+                Log::info('[NextPlot] Unhandled event type', ['type' => $eventType]);
                 return null;
         }
     }
@@ -76,10 +76,10 @@ class NextPlotService
      */
     private function handleMessage(array $event): ?array
     {
-        $message = $event['message'] ?? [];
-        $messageType = $message['type'] ?? '';
-        $messageId = $message['id'] ?? '';
-        $userId = $event['source']['userId'] ?? 'unknown';
+        $message     = $event['message']          ?? [];
+        $messageType = $message['type']           ?? '';
+        $messageId   = $message['id']             ?? '';
+        $userId      = $event['source']['userId'] ?? 'unknown';
 
         switch ($messageType) {
             case 'text':
@@ -92,7 +92,7 @@ class NextPlotService
                 return $this->handleMediaMessage($event);
 
             default:
-                Log::info("[NextPlot] Unhandled message type", ['type' => $messageType]);
+                Log::info('[NextPlot] Unhandled message type', ['type' => $messageType]);
                 return null;
         }
     }
@@ -105,12 +105,12 @@ class NextPlotService
      */
     private function handleTextMessage(array $event): array
     {
-        $text = $event['message']['text'] ?? '';
+        $text   = $event['message']['text']  ?? '';
         $userId = $event['source']['userId'] ?? 'unknown';
 
         Log::info('[NextPlot] Text message', [
             'userId' => $userId,
-            'text' => $text,
+            'text'   => $text,
         ]);
 
         // Help / Usage
@@ -135,10 +135,10 @@ class NextPlotService
 
         // Data is complete, save to database (and file)
         $record = [
-            'user_id' => $userId,
-            'event_type' => 'text',
+            'user_id'      => $userId,
+            'event_type'   => 'text',
             'text_content' => $text,
-            'raw' => $event,
+            'raw'          => $event,
         ];
         $this->supabase->insertRow('messages', $record);
         $this->logger->append($record);
@@ -157,13 +157,13 @@ class NextPlotService
      */
     private function handleMediaMessage(array $event): array
     {
-        $messageId = $event['message']['id'] ?? '';
-        $messageType = $event['message']['type'] ?? '';
-        $userId = $event['source']['userId'] ?? 'unknown';
+        $messageId   = $event['message']['id']    ?? '';
+        $messageType = $event['message']['type']  ?? '';
+        $userId      = $event['source']['userId'] ?? 'unknown';
 
-        Log::info("[NextPlot] Media message", [
-            'userId' => $userId,
-            'type' => $messageType,
+        Log::info('[NextPlot] Media message', [
+            'userId'    => $userId,
+            'type'      => $messageType,
             'messageId' => $messageId,
         ]);
 
@@ -178,14 +178,14 @@ class NextPlotService
         }
 
         // Generate storage path
-        $now = now();
+        $now       = now();
         $extension = $this->getExtensionForType($messageType);
-        $filename = "{$messageId}.{$extension}";
-        $path = "line/{$now->format('Y')}/{$now->format('m')}/{$now->format('d')}/{$filename}";
+        $filename  = "{$messageId}.{$extension}";
+        $path      = "line/{$now->format('Y')}/{$now->format('m')}/{$now->format('d')}/{$filename}";
 
         // Upload to Supabase Storage
         $contentType = $this->getContentTypeForType($messageType);
-        $uploaded = $this->supabase->uploadBuffer($this->bucketName, $path, $content, $contentType);
+        $uploaded    = $this->supabase->uploadBuffer($this->bucketName, $path, $content, $contentType);
 
         if (!$uploaded) {
             Log::error('[NextPlot] Failed to upload to Storage', ['path' => $path]);
@@ -200,10 +200,10 @@ class NextPlotService
 
         // Save to database (and file)
         $record = [
-            'user_id' => $userId,
-            'event_type' => $messageType,
+            'user_id'      => $userId,
+            'event_type'   => $messageType,
             'text_content' => $signedUrl ?? $path,
-            'raw' => $event,
+            'raw'          => $event,
         ];
         $this->supabase->insertRow('messages', $record);
         $this->logger->append($record);
@@ -223,12 +223,12 @@ class NextPlotService
      */
     private function handlePostback(array $event): ?array
     {
-        $data = $event['postback']['data'] ?? '';
+        $data   = $event['postback']['data'] ?? '';
         $userId = $event['source']['userId'] ?? 'unknown';
 
-        Log::info("[NextPlot] Postback", [
+        Log::info('[NextPlot] Postback', [
             'userId' => $userId,
-            'data' => $data,
+            'data'   => $data,
         ]);
 
         // Parse postback data
@@ -267,40 +267,44 @@ class NextPlotService
     private function generateQuickReply(?string $code, ?string $deed): array
     {
         $missing = [];
-        if (!$code) $missing[] = 'CODE';
-        if (!$deed) $missing[] = 'เลขโฉนด';
+        if (!$code) {
+            $missing[] = 'CODE';
+        }
+        if (!$deed) {
+            $missing[] = 'เลขโฉนด';
+        }
 
-        $text = "⚠️ ข้อมูลยังไม่ครบ: " . implode(', ', $missing);
+        $text = '⚠️ ข้อมูลยังไม่ครบ: ' . implode(', ', $missing);
 
         return [
-            'type' => 'text',
-            'text' => $text,
+            'type'       => 'text',
+            'text'       => $text,
             'quickReply' => [
                 'items' => [
                     [
-                        'type' => 'action',
+                        'type'   => 'action',
                         'action' => [
-                            'type' => 'postback',
-                            'label' => '➕ เพิ่ม CODE',
-                            'data' => 'action=add_code',
+                            'type'        => 'postback',
+                            'label'       => '➕ เพิ่ม CODE',
+                            'data'        => 'action=add_code',
                             'displayText' => 'เพิ่ม CODE',
                         ],
                     ],
                     [
-                        'type' => 'action',
+                        'type'   => 'action',
                         'action' => [
-                            'type' => 'postback',
-                            'label' => '➕ เพิ่มเลขโฉนด',
-                            'data' => 'action=add_deed',
+                            'type'        => 'postback',
+                            'label'       => '➕ เพิ่มเลขโฉนด',
+                            'data'        => 'action=add_deed',
                             'displayText' => 'เพิ่มเลขโฉนด',
                         ],
                     ],
                     [
-                        'type' => 'action',
+                        'type'   => 'action',
                         'action' => [
-                            'type' => 'postback',
-                            'label' => '⏩ ข้าม',
-                            'data' => 'action=skip',
+                            'type'        => 'postback',
+                            'label'       => '⏩ ข้าม',
+                            'data'        => 'action=skip',
                             'displayText' => 'ข้าม',
                         ],
                     ],
@@ -331,16 +335,16 @@ class NextPlotService
                 return $response->body();
             }
 
-            Log::error("[NextPlot] LINE content fetch failed", [
+            Log::error('[NextPlot] LINE content fetch failed', [
                 'messageId' => $messageId,
-                'status' => $response->status(),
+                'status'    => $response->status(),
             ]);
             return null;
 
         } catch (\Exception $e) {
-            Log::error("[NextPlot] LINE content fetch error", [
+            Log::error('[NextPlot] LINE content fetch error', [
                 'messageId' => $messageId,
-                'error' => $e->getMessage(),
+                'error'     => $e->getMessage(),
             ]);
             return null;
         }
@@ -355,7 +359,7 @@ class NextPlotService
             'image' => 'jpg',
             'video' => 'mp4',
             'audio' => 'm4a',
-            'file' => 'bin',
+            'file'  => 'bin',
             default => 'dat',
         };
     }
@@ -369,7 +373,7 @@ class NextPlotService
             'image' => 'image/jpeg',
             'video' => 'video/mp4',
             'audio' => 'audio/mp4',
-            'file' => 'application/octet-stream',
+            'file'  => 'application/octet-stream',
             default => 'application/octet-stream',
         };
     }

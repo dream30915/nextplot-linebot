@@ -23,7 +23,7 @@ class SupabaseService
 
     public function __construct()
     {
-        $this->supabaseUrl = config('nextplot.supabase.url') ?? '';
+        $this->supabaseUrl = config('nextplot.supabase.url')          ?? '';
         $this->serviceRole = config('nextplot.supabase.service_role') ?? '';
 
         $anonKeyConfig = config('nextplot.supabase.anon_key');
@@ -32,8 +32,8 @@ class SupabaseService
 
         if (!$this->supabaseUrl || !$this->anonKey) {
             Log::warning('Supabase configuration missing critical values', [
-                'url_set' => !empty($this->supabaseUrl),
-                'anon_key_set' => !empty($anonKeyConfig),
+                'url_set'          => !empty($this->supabaseUrl),
+                'anon_key_set'     => !empty($anonKeyConfig),
                 'service_role_set' => !empty($this->serviceRole),
             ]);
         }
@@ -52,10 +52,10 @@ class SupabaseService
             $url = "{$this->supabaseUrl}/rest/v1/{$table}";
 
             $response = Http::withHeaders([
-                'apikey' => $this->anonKey,
+                'apikey'        => $this->anonKey,
                 'Authorization' => "Bearer {$this->serviceRole}",
-                'Content-Type' => 'application/json',
-                'Prefer' => 'return=representation',
+                'Content-Type'  => 'application/json',
+                'Prefer'        => 'return=representation',
             ])->post($url, $payload);
 
             if ($response->successful()) {
@@ -64,15 +64,15 @@ class SupabaseService
                 return $data[0] ?? null;
             }
 
-            Log::error("[Supabase] Insert failed", [
-                'table' => $table,
+            Log::error('[Supabase] Insert failed', [
+                'table'  => $table,
                 'status' => $response->status(),
-                'body' => $response->body(),
+                'body'   => $response->body(),
             ]);
             return null;
 
         } catch (\Exception $e) {
-            Log::error("[Supabase] Insert error", [
+            Log::error('[Supabase] Insert error', [
                 'table' => $table,
                 'error' => $e->getMessage(),
             ]);
@@ -95,33 +95,33 @@ class SupabaseService
             $url = "{$this->supabaseUrl}/storage/v1/object/{$bucket}/{$path}";
 
             $response = Http::withHeaders([
-                'apikey' => $this->anonKey,
+                'apikey'        => $this->anonKey,
                 'Authorization' => "Bearer {$this->serviceRole}",
-                'Content-Type' => $contentType,
+                'Content-Type'  => $contentType,
             ])->withBody($buffer, $contentType)->post($url);
 
             if ($response->successful()) {
-                Log::info("[Supabase Storage] Uploaded file", [
+                Log::info('[Supabase Storage] Uploaded file', [
                     'bucket' => $bucket,
-                    'path' => $path,
-                    'size' => strlen($buffer),
+                    'path'   => $path,
+                    'size'   => strlen($buffer),
                 ]);
                 return true;
             }
 
-            Log::error("[Supabase Storage] Upload failed", [
+            Log::error('[Supabase Storage] Upload failed', [
                 'bucket' => $bucket,
-                'path' => $path,
+                'path'   => $path,
                 'status' => $response->status(),
-                'body' => $response->body(),
+                'body'   => $response->body(),
             ]);
             return false;
 
         } catch (\Exception $e) {
-            Log::error("[Supabase Storage] Upload error", [
+            Log::error('[Supabase Storage] Upload error', [
                 'bucket' => $bucket,
-                'path' => $path,
-                'error' => $e->getMessage(),
+                'path'   => $path,
+                'error'  => $e->getMessage(),
             ]);
             return false;
         }
@@ -141,39 +141,39 @@ class SupabaseService
             $url = "{$this->supabaseUrl}/storage/v1/object/sign/{$bucket}/{$path}";
 
             $response = Http::withHeaders([
-                'apikey' => $this->anonKey,
+                'apikey'        => $this->anonKey,
                 'Authorization' => "Bearer {$this->serviceRole}",
-                'Content-Type' => 'application/json',
+                'Content-Type'  => 'application/json',
             ])->post($url, ['expiresIn' => $expiresIn]);
 
             if ($response->successful()) {
-                $data = $response->json();
+                $data       = $response->json();
                 $signedPath = $data['signedURL'] ?? null;
 
                 if ($signedPath) {
                     $fullUrl = "{$this->supabaseUrl}/storage/v1{$signedPath}";
-                    Log::info("[Supabase Storage] Signed URL generated", [
-                        'bucket' => $bucket,
-                        'path' => $path,
+                    Log::info('[Supabase Storage] Signed URL generated', [
+                        'bucket'    => $bucket,
+                        'path'      => $path,
                         'expiresIn' => $expiresIn,
                     ]);
                     return $fullUrl;
                 }
             }
 
-            Log::error("[Supabase Storage] Sign failed", [
+            Log::error('[Supabase Storage] Sign failed', [
                 'bucket' => $bucket,
-                'path' => $path,
+                'path'   => $path,
                 'status' => $response->status(),
-                'body' => $response->body(),
+                'body'   => $response->body(),
             ]);
             return null;
 
         } catch (\Exception $e) {
-            Log::error("[Supabase Storage] Sign error", [
+            Log::error('[Supabase Storage] Sign error', [
                 'bucket' => $bucket,
-                'path' => $path,
-                'error' => $e->getMessage(),
+                'path'   => $path,
+                'error'  => $e->getMessage(),
             ]);
             return null;
         }
@@ -190,15 +190,15 @@ class SupabaseService
     {
         try {
             // Check if bucket exists
-            $listUrl = "{$this->supabaseUrl}/storage/v1/bucket";
+            $listUrl  = "{$this->supabaseUrl}/storage/v1/bucket";
             $response = Http::withHeaders([
-                'apikey' => $this->anonKey,
+                'apikey'        => $this->anonKey,
                 'Authorization' => "Bearer {$this->serviceRole}",
             ])->get($listUrl);
 
             if ($response->successful()) {
                 $buckets = $response->json();
-                $exists = false;
+                $exists  = false;
                 if (is_array($buckets)) {
                     foreach ($buckets as $b) {
                         if (is_array($b) && ($b['name'] ?? null) === $bucket) {
@@ -209,41 +209,41 @@ class SupabaseService
                 }
 
                 if ($exists) {
-                    Log::info("[Supabase Storage] Bucket exists", ['bucket' => $bucket]);
+                    Log::info('[Supabase Storage] Bucket exists', ['bucket' => $bucket]);
                     return true;
                 }
             }
 
             // Create bucket
-            $createUrl = "{$this->supabaseUrl}/storage/v1/bucket";
+            $createUrl      = "{$this->supabaseUrl}/storage/v1/bucket";
             $createResponse = Http::withHeaders([
-                'apikey' => $this->anonKey,
+                'apikey'        => $this->anonKey,
                 'Authorization' => "Bearer {$this->serviceRole}",
-                'Content-Type' => 'application/json',
+                'Content-Type'  => 'application/json',
             ])->post($createUrl, [
-                'name' => $bucket,
+                'name'   => $bucket,
                 'public' => $isPublic,
             ]);
 
             if ($createResponse->successful()) {
-                Log::info("[Supabase Storage] Bucket created", [
+                Log::info('[Supabase Storage] Bucket created', [
                     'bucket' => $bucket,
                     'public' => $isPublic,
                 ]);
                 return true;
             }
 
-            Log::error("[Supabase Storage] Bucket creation failed", [
+            Log::error('[Supabase Storage] Bucket creation failed', [
                 'bucket' => $bucket,
                 'status' => $createResponse->status(),
-                'body' => $createResponse->body(),
+                'body'   => $createResponse->body(),
             ]);
             return false;
 
         } catch (\Exception $e) {
-            Log::error("[Supabase Storage] Bucket ensure error", [
+            Log::error('[Supabase Storage] Bucket ensure error', [
                 'bucket' => $bucket,
-                'error' => $e->getMessage(),
+                'error'  => $e->getMessage(),
             ]);
             return false;
         }
