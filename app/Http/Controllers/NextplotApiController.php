@@ -10,7 +10,8 @@ class NextplotApiController extends Controller
     // GET /api/nextplot/search?q=ping
     public function search(Request $request): JsonResponse
     {
-        $q = (string) $request->query('q', '');
+        $qRaw = $request->query('q');
+        $q = is_string($qRaw) ? $qRaw : '';
 
         return response()->json([
             'ok'   => true,

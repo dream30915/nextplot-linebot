@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * Supabase Service
  * Translated from: line-webhook-proxy/lib/supabase.js
- * 
+ *
  * Provides methods to interact with Supabase:
  * - insertRow: Insert data into PostgREST tables
  * - uploadBuffer: Upload files to Supabase Storage
@@ -20,7 +20,6 @@ class SupabaseService
     private string $supabaseUrl;
     private string $anonKey;
     private string $serviceRole;
-    private string $bucketName;
 
     public function __construct()
     {
@@ -30,7 +29,6 @@ class SupabaseService
         $anonKeyConfig = config('nextplot.supabase.anon_key');
         $this->anonKey = !empty($anonKeyConfig) ? $anonKeyConfig : $this->serviceRole;
 
-        $this->bucketName = config('nextplot.supabase.bucket_name', 'nextplot');
 
         if (!$this->supabaseUrl || !$this->anonKey) {
             Log::warning('Supabase configuration missing critical values', [
@@ -43,10 +41,10 @@ class SupabaseService
 
     /**
      * Insert a row into a Supabase table via PostgREST
-     * 
+     *
      * @param string $table Table name
-     * @param array $payload Data to insert
-     * @return array|null Inserted row or null on failure
+    * @param array<string, mixed> $payload Data to insert
+    * @return array<string, mixed>|null Inserted row or null on failure
      */
     public function insertRow(string $table, array $payload): ?array
     {
@@ -84,7 +82,7 @@ class SupabaseService
 
     /**
      * Upload a file buffer to Supabase Storage
-     * 
+     *
      * @param string $bucket Bucket name
      * @param string $path File path in bucket (e.g., "line/2025/01/19/image.jpg")
      * @param string $buffer Binary file content
@@ -131,7 +129,7 @@ class SupabaseService
 
     /**
      * Generate a signed URL for a private file
-     * 
+     *
      * @param string $bucket Bucket name
      * @param string $path File path in bucket
      * @param int $expiresIn Expiry time in seconds (default: 3600 = 1 hour)
@@ -151,7 +149,7 @@ class SupabaseService
             if ($response->successful()) {
                 $data = $response->json();
                 $signedPath = $data['signedURL'] ?? null;
-                
+
                 if ($signedPath) {
                     $fullUrl = "{$this->supabaseUrl}/storage/v1{$signedPath}";
                     Log::info("[Supabase Storage] Signed URL generated", [
@@ -183,7 +181,7 @@ class SupabaseService
 
     /**
      * Ensure storage bucket exists (create if not)
-     * 
+     *
      * @param string $bucket Bucket name
      * @param bool $isPublic Whether bucket should be public
      * @return bool Success status
@@ -200,7 +198,15 @@ class SupabaseService
 
             if ($response->successful()) {
                 $buckets = $response->json();
-                $exists = collect($buckets)->contains('name', $bucket);
+                $exists = false;
+                if (is_array($buckets)) {
+                    foreach ($buckets as $b) {
+                        if (is_array($b) && ($b['name'] ?? null) === $bucket) {
+                            $exists = true;
+                            break;
+                        }
+                    }
+                }
 
                 if ($exists) {
                     Log::info("[Supabase Storage] Bucket exists", ['bucket' => $bucket]);

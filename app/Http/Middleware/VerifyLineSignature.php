@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Verify LINE Signature Middleware
- * 
+ *
  * Validates incoming webhook requests from LINE Platform
  * using HMAC-SHA256 signature verification
  */
@@ -31,14 +31,14 @@ class VerifyLineSignature
 
         // Get signature from header
         $signature = $request->header('x-line-signature');
-        if (!$signature) {
+        if (!is_string($signature) || $signature === '') {
             Log::warning('[LINE Signature] Missing signature header');
             return response()->json(['error' => 'Missing signature'], 401);
         }
 
         // Get raw body
         $body = $request->getContent();
-        
+
         // Get channel secret
         $channelSecret = config('nextplot.line.channel_secret');
         if (!$channelSecret) {

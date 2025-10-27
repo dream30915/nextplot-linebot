@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\NextPlotService;
 use App\Services\SupabaseService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -24,6 +25,7 @@ class LineWebhookController extends Controller
     private string $channelSecret;
     private string $accessToken;
     private bool $signatureRelaxed;
+    /** @var array<int, string> */
     private array $allowlist;
 
     public function __construct(?NextPlotService $nextPlot = null, ?SupabaseService $supabase = null)
@@ -56,7 +58,7 @@ class LineWebhookController extends Controller
     /**
      * Handle LINE webhook POST request
      */
-    public function handle(Request $request)
+    public function handle(Request $request): JsonResponse
     {
         try {
             Log::info('[LINE Webhook] Request received', [
@@ -80,7 +82,7 @@ class LineWebhookController extends Controller
             // Verify signature
             if (!$this->signatureRelaxed) {
                 $signature = $request->header('x-line-signature');
-                if (!$signature) {
+                if (!is_string($signature) || $signature === '') {
                     Log::warning('[LINE Webhook] Missing signature');
                     return response()->json(['error' => 'Missing signature'], 401);
                 }
@@ -131,6 +133,9 @@ class LineWebhookController extends Controller
     /**
      * Process a single event
      */
+    /**
+     * @param array<string, mixed> $event
+     */
     private function processEvent(array $event): void
     {
         try {
@@ -149,16 +154,8 @@ class LineWebhookController extends Controller
                 return;
             }
 
-            // Save to database (simple version)
-            if ($eventType === 'message') {
-                $message = $event['message'] ?? [];
-                $this->supabase->insertRow('messages', [
-                    'user_id' => $userId,
-                    'event_type' => $message['type'] ?? 'unknown',
-                    'text_content' => $message['text'] ?? null,
-                    'raw' => $event,
-                ]);
-            }
+            // Removed: generic save for all messages.
+            // Now NextPlotService decides selectively what to persist.
 
             // Process with NextPlotService
             $replyMessage = $this->nextPlot->processEvent($event);
@@ -187,6 +184,9 @@ class LineWebhookController extends Controller
 
     /**
      * Send reply message to LINE
+     */
+    /**
+     * @param array<string, mixed> $message
      */
     private function sendReply(string $replyToken, array $message): void
     {

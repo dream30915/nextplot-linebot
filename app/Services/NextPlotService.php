@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * NextPlot Service
  * Translated from: line-webhook-proxy/lib/nextplot.js
- * 
+ *
  * Business logic for NextPlot system:
  * - Process LINE webhook events (text, image, file)
  * - Validate data completeness (CODE, เลขโฉนด)
@@ -20,23 +20,29 @@ class NextPlotService
     private SupabaseService $supabase;
     private string $lineAccessToken;
     private string $bucketName;
+    private ConversationLogger $logger;
 
     // Regex patterns for validation
     private const PATTERN_CODE = '/[A-Z]{2,10}-\d{1,4}/u';
     private const PATTERN_DEED = '/(โฉนด|น\.ส\.3)\s*\d+/u';
 
-    public function __construct(SupabaseService $supabase)
+    public function __construct(SupabaseService $supabase, ConversationLogger $logger)
     {
         $this->supabase = $supabase;
         $this->lineAccessToken = config('nextplot.line.access_token');
         $this->bucketName = config('nextplot.supabase.bucket_name', 'nextplot');
+        $this->logger = $logger;
     }
 
     /**
      * Process a LINE webhook event
-     * 
+     *
      * @param array $event LINE event object
      * @return array|null Reply message to send back to LINE
+     */
+    /**
+     * @param array<string, mixed> $event
+     * @return array<string, mixed>|null
      */
     public function processEvent(array $event): ?array
     {
@@ -51,10 +57,10 @@ class NextPlotService
         switch ($eventType) {
             case 'message':
                 return $this->handleMessage($event);
-            
+
             case 'postback':
                 return $this->handlePostback($event);
-            
+
             default:
                 Log::info("[NextPlot] Unhandled event type", ['type' => $eventType]);
                 return null;
@@ -63,6 +69,10 @@ class NextPlotService
 
     /**
      * Handle message events (text, image, file)
+     */
+    /**
+     * @param array<string, mixed> $event
+     * @return array<string, mixed>|null
      */
     private function handleMessage(array $event): ?array
     {
@@ -74,13 +84,13 @@ class NextPlotService
         switch ($messageType) {
             case 'text':
                 return $this->handleTextMessage($event);
-            
+
             case 'image':
             case 'video':
             case 'audio':
             case 'file':
                 return $this->handleMediaMessage($event);
-            
+
             default:
                 Log::info("[NextPlot] Unhandled message type", ['type' => $messageType]);
                 return null;
@@ -89,16 +99,27 @@ class NextPlotService
 
     /**
      * Handle text messages
+     *
+     * @param array<string, mixed> $event
+     * @return array<string, mixed>
      */
-    private function handleTextMessage(array $event): ?array
+    private function handleTextMessage(array $event): array
     {
         $text = $event['message']['text'] ?? '';
         $userId = $event['source']['userId'] ?? 'unknown';
 
-        Log::info("[NextPlot] Text message", [
+        Log::info('[NextPlot] Text message', [
             'userId' => $userId,
             'text' => $text,
         ]);
+
+        // Help / Usage
+        if ($this->isHelpCommand($text)) {
+            return [
+                'type' => 'text',
+                'text' => "วิธีใช้\n- พิมพ์ CODE และเลขโฉนดในข้อความเดียวกัน เช่น: WC-007 โฉนด 8899\n- ส่งรูป/ไฟล์แนบได้ ระบบจะอัปโหลดและส่งลิงก์กลับ\n- คำสั่ง: help, วิธีใช้",
+            ];
+        }
 
         // Extract CODE and เลขโฉนด from text
         $hasCode = preg_match(self::PATTERN_CODE, $text, $codeMatches);
@@ -112,24 +133,29 @@ class NextPlotService
             return $this->generateQuickReply($code, $deed);
         }
 
-        // Data is complete, save to database
-        $this->supabase->insertRow('messages', [
+        // Data is complete, save to database (and file)
+        $record = [
             'user_id' => $userId,
             'event_type' => 'text',
             'text_content' => $text,
             'raw' => $event,
-        ]);
+        ];
+        $this->supabase->insertRow('messages', $record);
+        $this->logger->append($record);
 
         return [
             'type' => 'text',
-            'text' => "✅ บันทึกข้อมูลเรียบร้อย\n\nCODE: {$code}\nเลขโฉนด: {$deed}",
+            'text' => "✅ บันทึกข้อมูลเรียบร้อย\n\nCODE: {$code}\nเลขโฉนด: {$deed}\nไฟล์: storage/app/conversations.ndjson",
         ];
     }
 
     /**
      * Handle media messages (image, file, etc.)
+     *
+     * @param array<string, mixed> $event
+     * @return array<string, mixed>
      */
-    private function handleMediaMessage(array $event): ?array
+    private function handleMediaMessage(array $event): array
     {
         $messageId = $event['message']['id'] ?? '';
         $messageType = $event['message']['type'] ?? '';
@@ -144,7 +170,7 @@ class NextPlotService
         // Download content from LINE
         $content = $this->fetchLineContent($messageId);
         if (!$content) {
-            Log::error("[NextPlot] Failed to download LINE content", ['messageId' => $messageId]);
+            Log::error('[NextPlot] Failed to download LINE content', ['messageId' => $messageId]);
             return [
                 'type' => 'text',
                 'text' => '❌ ไม่สามารถดาวน์โหลดไฟล์ได้',
@@ -162,7 +188,7 @@ class NextPlotService
         $uploaded = $this->supabase->uploadBuffer($this->bucketName, $path, $content, $contentType);
 
         if (!$uploaded) {
-            Log::error("[NextPlot] Failed to upload to Storage", ['path' => $path]);
+            Log::error('[NextPlot] Failed to upload to Storage', ['path' => $path]);
             return [
                 'type' => 'text',
                 'text' => '❌ ไม่สามารถอัปโหลดไฟล์ได้',
@@ -172,22 +198,28 @@ class NextPlotService
         // Generate signed URL
         $signedUrl = $this->supabase->signPath($this->bucketName, $path, 3600);
 
-        // Save to database
-        $this->supabase->insertRow('messages', [
+        // Save to database (and file)
+        $record = [
             'user_id' => $userId,
             'event_type' => $messageType,
             'text_content' => $signedUrl ?? $path,
             'raw' => $event,
-        ]);
+        ];
+        $this->supabase->insertRow('messages', $record);
+        $this->logger->append($record);
 
         return [
             'type' => 'text',
-            'text' => "✅ อัปโหลดไฟล์เรียบร้อย\n\nประเภท: {$messageType}\nลิงก์ (ใช้ได้ 1 ชม.): {$signedUrl}",
+            'text' => "✅ อัปโหลดไฟล์เรียบร้อย\n\nประเภท: {$messageType}\nลิงก์ (ใช้ได้ 1 ชม.): {$signedUrl}\nไฟล์: storage/app/conversations.ndjson",
         ];
     }
 
     /**
      * Handle postback events (from Quick Reply buttons)
+     */
+    /**
+     * @param array<string, mixed> $event
+     * @return array<string, mixed>|null
      */
     private function handlePostback(array $event): ?array
     {
@@ -209,19 +241,19 @@ class NextPlotService
                     'type' => 'text',
                     'text' => 'โปรดพิมพ์ CODE ในรูปแบบ: XX-999 (เช่น WC-007)',
                 ];
-            
+
             case 'add_deed':
                 return [
                     'type' => 'text',
                     'text' => 'โปรดพิมพ์เลขโฉนด (เช่น โฉนด 8899)',
                 ];
-            
+
             case 'skip':
                 return [
                     'type' => 'text',
                     'text' => '⏩ ข้ามการบันทึกข้อมูล',
                 ];
-            
+
             default:
                 return null;
         }
@@ -229,6 +261,8 @@ class NextPlotService
 
     /**
      * Generate Quick Reply message when data is incomplete
+     *
+     * @return array<string, mixed>
      */
     private function generateQuickReply(?string $code, ?string $deed): array
     {
@@ -275,6 +309,12 @@ class NextPlotService
         ];
     }
 
+    private function isHelpCommand(string $text): bool
+    {
+        $t = mb_strtolower(trim($text), 'UTF-8');
+        return in_array($t, ['help', '/help', 'วิธีใช้', 'ใช้งานยังไง'], true);
+    }
+
     /**
      * Fetch content from LINE CDN
      */
@@ -282,7 +322,7 @@ class NextPlotService
     {
         try {
             $url = "https://api-data.line.me/v2/bot/message/{$messageId}/content";
-            
+
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$this->lineAccessToken}",
             ])->get($url);
