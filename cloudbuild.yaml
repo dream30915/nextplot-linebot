@@ -30,7 +30,7 @@ steps:
       - '--cpu=1'
       - '--memory=512Mi'
       - '--cpu-boost'
-      - '--set-env-vars=APP_ENV=production,APP_DEBUG=false,SUPABASE_BUCKET_NAME=nextplot'
+      - '--set-env-vars=APP_ENV=production,APP_DEBUG=false,SUPABASE_BUCKET_NAME=nextplot,LOG_CHANNEL=stderr'
       - '--set-secrets=APP_KEY=APP_KEY:latest,LINE_CHANNEL_ACCESS_TOKEN=LINE_CHANNEL_ACCESS_TOKEN:latest,LINE_CHANNEL_SECRET=LINE_CHANNEL_SECRET:latest,SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_SERVICE_ROLE=SUPABASE_SERVICE_ROLE:latest'
 
 images:

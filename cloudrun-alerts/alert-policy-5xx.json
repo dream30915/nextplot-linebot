@@ -1,0 +1,20 @@
+{
+  "displayName": "Cloud Run 5xx rate high",
+  "combiner": "OR",
+  "enabled": true,
+  "conditions": [
+    {
+      "displayName": "5xx rate > 1/min for 5m",
+      "conditionThreshold": {
+        "filter": "metric.type=\"run.googleapis.com/request_count\" resource.type=\"cloud_run_revision\" metric.label.response_code_class=\"5xx\" resource.label.service_name=\"nextplot-linebot\"",
+        "comparison": "COMPARISON_GT",
+        "thresholdValue": 1,
+        "duration": "300s",
+        "aggregations": [
+          { "alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_RATE" }
+        ]
+      }
+    }
+  ],
+  "notificationChannels": []
+}

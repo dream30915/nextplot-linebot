@@ -1,0 +1,78 @@
+name: CI
+
+on:
+    push:
+        branches: [master]
+    pull_request:
+        branches: [master]
+
+jobs:
+    build-test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: "8.2"
+                  coverage: none
+                  tools: composer:v2
+                  extensions: mbstring, ctype, curl, dom, fileinfo, json, pdo, pdo_mysql, tokenizer
+
+            - name: Get Composer Cache Directory
+              id: composer-cache
+              run: |
+                  echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+            - name: Cache Composer dependencies
+              uses: actions/cache@v4
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+                  restore-keys: ${{ runner.os }}-composer-
+
+            - name: Install dependencies
+              run: composer install --no-interaction --no-progress --prefer-dist
+
+            - name: Copy .env
+              run: |
+                  cp .env.example .env || true
+                  php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+            - name: Application key
+              run: php artisan key:generate
+
+            - name: Run PHPUnit
+              run: php vendor/bin/phpunit
+
+            - name: Run PHPStan (level from phpstan.neon.dist)
+              run: |
+                  if [ -f phpstan.neon ] || [ -f phpstan.neon.dist ]; then
+                    composer run -q phpstan || vendor/bin/phpstan analyse --memory-limit=512M || true
+                  fi
+
+            - name: Run PHP-CS-Fixer (dry-run)
+              run: |
+                  if [ -f .php-cs-fixer.dist.php ]; then
+                    composer run -q php-cs-fixer || vendor/bin/php-cs-fixer fix --dry-run --diff
+                  fi
+
+    secret-scan:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Gitleaks scan
+              uses: gitleaks/gitleaks-action@v2
+              env:
+                  GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+              with:
+                  args: detect --no-banner --redact --report-format sarif --report-path gitleaks.sarif
+            - name: Upload SARIF
+              if: always()
+              uses: github/codeql-action/upload-sarif@v3
+              with:
+                  sarif_file: gitleaks.sarif

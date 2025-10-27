@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * LINE Webhook Controller
  * Translated from: line-webhook-proxy/api/line/webhook.js
- * 
+ *
  * Handles LINE webhook events:
  * - Verify LINE signature (HMAC-SHA256)
  * - Process events with NextPlotService
@@ -39,11 +39,18 @@ class LineWebhookController extends Controller
             $this->nextPlot = null;
             $this->supabase = null;
         }
-        
+
         $this->channelSecret = config('nextplot.line.channel_secret');
         $this->accessToken = config('nextplot.line.access_token');
         $this->signatureRelaxed = config('nextplot.line.signature_relaxed', false);
-        $this->allowlist = explode(',', config('nextplot.line.user_id_allowlist', ''));
+
+        // Normalize allowlist: support empty env and remove empty/whitespace items
+        $allowlistRaw = trim((string) config('nextplot.line.user_id_allowlist', ''));
+        $allowlistArr = array_map('trim', explode(',', $allowlistRaw));
+        $allowlistArr = array_values(array_filter($allowlistArr, function ($v) {
+            return $v !== '' && $v !== null;
+        }));
+        $this->allowlist = $allowlistArr;
     }
 
     /**
@@ -107,7 +114,7 @@ class LineWebhookController extends Controller
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             // Return 200 to prevent LINE from retrying during debugging
             if (env('APP_DEBUG', false)) {
                 return response()->json([
@@ -116,7 +123,7 @@ class LineWebhookController extends Controller
                     'debug' => true
                 ], 200);
             }
-            
+
             return response()->json(['error' => 'Internal server error'], 500);
         }
     }
@@ -136,8 +143,8 @@ class LineWebhookController extends Controller
                 'userId' => $userId,
             ]);
 
-            // Check allowlist
-            if (!empty($this->allowlist) && !in_array($userId, $this->allowlist)) {
+            // Check allowlist (only enforce when list is non-empty)
+            if (count($this->allowlist) > 0 && !in_array($userId, $this->allowlist, true)) {
                 Log::warning('[LINE Webhook] User not in allowlist', ['userId' => $userId]);
                 return;
             }
@@ -185,7 +192,7 @@ class LineWebhookController extends Controller
     {
         try {
             $url = 'https://api.line.me/v2/bot/message/reply';
-            
+
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$this->accessToken}",
                 'Content-Type' => 'application/json',

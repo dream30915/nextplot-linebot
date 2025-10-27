@@ -1,0 +1,12 @@
+parameters:
+  level: 7
+  paths:
+    - app
+  tmpDir: build/phpstan
+  checkGenericClassInNonGenericObjectType: false
+  reportUnmatchedIgnoredErrors: false
+  ignoreErrors:
+    # Laravel magic / dynamic properties can trigger false positives; keep initial ignore minimal
+    - '#Access to an undefined property#'
+    - '#Call to an undefined method Illuminate\\#'
+    - '#Parameter \#\d+ \$.* of method .* expects .*\|null, mixed given#'

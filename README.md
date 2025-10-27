@@ -1,5 +1,7 @@
 # 🤖 NextPlot LINE Bot
 
+![CI](https://github.com/dream30915/nextplot-linebot/actions/workflows/ci.yml/badge.svg)
+
 NextPlot คือ LINE Bot ที่ใช้ Laravel 12 และ AI เพื่อตอบคำถามและให้บริการผู้ใช้งานผ่าน LINE Messaging API
 
 ## ✨ คุณสมบัติหลัก
@@ -153,6 +155,25 @@ php artisan serve
 php artisan test
 ```
 
+### Static Analysis & Coding Standards
+
+```powershell
+# PHPStan (level configurable in phpstan.neon.dist)
+composer phpstan
+
+# PHP-CS-Fixer (check only)
+composer php-cs-fixer
+
+# PHP-CS-Fixer (apply fixes)
+composer php-cs-fixer:fix
+```
+
+### Post-deploy Health Check
+
+```powershell
+.\u0073cripts\post-deploy-health.ps1 -Url "https://<your-cloud-run-url>/api/health" -Attempts 10 -IntervalSec 6
+```
+
 ## 📦 Deployment
 
 ### Deploy ไป Google Cloud Run
@@ -219,6 +240,7 @@ vercel --prod
 - [SETUP_GUIDE.md](SETUP_GUIDE.md) - คู่มือการติดตั้งแบบละเอียด
 - [LARAVEL_SETUP.md](LARAVEL_SETUP.md) - การตั้งค่า Laravel
 - [NEXTPLOT.md](NEXTPLOT.md) - เอกสาร NextPlot API
+- [Runbook: Troubleshooting & Operations](how-to-guides/runbook-line-bot-troubleshooting.md) - วิธีแก้ปัญหา 401/400/429, การดู logs และแนวทาง deploy
 
 ## 🔧 Troubleshooting
 

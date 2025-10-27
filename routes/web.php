@@ -8,3 +8,7 @@ Route::get('/healthz', function () {
         'time' => now()->toIso8601String(),
     ]);
 });
+
+Route::get('/', function () {
+    return response('OK', 200);
+});
