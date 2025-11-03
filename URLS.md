@@ -13,7 +13,7 @@
 ### Production (Primary)
 
 ```
-https://nextplot-linebot-656d4rnjja-as.a.run.app/api/line/webhook
+https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/line/webhook
 ```
 
 **ตั้งค่า:**
@@ -49,10 +49,10 @@ https://[random-name].trycloudflare.com/api/line/webhook
 ### Service URLs
 
 ```
-Base URL:     https://nextplot-linebot-656d4rnjja-as.a.run.app
-Health Check: https://nextplot-linebot-656d4rnjja-as.a.run.app/api/health
-Webhook:      https://nextplot-linebot-656d4rnjja-as.a.run.app/api/line/webhook
-NextPlot API: https://nextplot-linebot-656d4rnjja-as.a.run.app/api/nextplot/search
+Base URL:     https://nextplot-linebot-546634969975.asia-southeast1.run.app
+Health Check: https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/health
+Webhook:      https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/line/webhook
+NextPlot API: https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/nextplot/search
 ```
 
 ### ตรวจสอบสถานะ
@@ -176,7 +176,7 @@ Webhook:     https://[random].trycloudflare.com/api/line/webhook
 
 | Service | Health URL | Expected Response |
 |---------|-----------|-------------------|
-| **Cloud Run** | `https://nextplot-linebot-656d4rnjja-as.a.run.app/api/health` | `{"status":"healthy","service":"laravel",...}` |
+| **Cloud Run** | `https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/health` | `{"status":"healthy","service":"laravel",...}` |
 | **Vercel** | `https://nextplotlinebot.vercel.app/api/health` | `{"status":"healthy","service":"vercel",...}` |
 | **Local** | `http://127.0.0.1:8000/api/health` | `{"status":"healthy","service":"laravel",...}` |
 
@@ -184,7 +184,7 @@ Webhook:     https://[random].trycloudflare.com/api/line/webhook
 
 ```powershell
 # Cloud Run
-curl https://nextplot-linebot-656d4rnjja-as.a.run.app/api/health
+curl https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/health
 
 # Vercel
 curl https://nextplotlinebot.vercel.app/api/health

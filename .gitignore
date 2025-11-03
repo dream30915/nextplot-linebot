@@ -39,3 +39,8 @@ how-to-guides/
 .env.bak
 .env.bak.*
 .vercel
+
+# Tool caches and artifacts
+.php-cs-fixer.cache
+/build/phpstan/
+*.tgz

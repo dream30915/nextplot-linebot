@@ -1,0 +1,7 @@
+run:
+  deploy:
+    source: .
+    region: asia-southeast1
+    service: nextplot-linebot
+    env_vars_file: .env
+    allow_unauthenticated: true

@@ -35,7 +35,7 @@ function Read-Dotenv {
     return $result
 }
 
-$CLOUDRUN_URL = 'https://nextplot-linebot-656d4rnjja-as.a.run.app/api/line/webhook'
+$CLOUDRUN_URL = 'https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/line/webhook'
 $VERCEL_URL = 'https://nextplotlinebot.vercel.app/api/line/webhook'
 
 Write-Host 'Reading .env...' -ForegroundColor Cyan
