@@ -1,13 +1,14 @@
 # ✅ NextPlot - สถานะการพัฒนาและการทดสอบ
 
-## 📊 สถานะปัจจุบัน (2025-10-19)
+## 📊 สถานะปัจจุบัน (2025-10-30)
 
 ### ✅ ฟีเจอร์ที่ใช้งานได้แล้ว (Tested & Working)
 
 #### 1. LINE Webhook Integration ✅
 
 - **Status**: ✅ Production Ready
-- **URL**: `https://nextplot-line-webhook.vercel.app/api/line/webhook`
+- **Primary URL (Cloud Run)**: `https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/line/webhook`
+- **Backup URL (Vercel)**: `https://nextplotlinebot.vercel.app/api/line/webhook`
 - **Features**:
   - รับ POST requests จาก LINE Platform
   - ตรวจสอบ X-Line-Signature (HMAC-SHA256)
@@ -17,8 +18,8 @@
 **Test Results**:
 
 ```bash
-✅ Health Check: OK
-✅ Webhook POST: OK
+✅ Health Check (Cloud Run): OK
+✅ Webhook POST (always-ack mode): OK
 ✅ Signature Verification: OK (can be disabled with LINE_SIGNATURE_RELAXED=true)
 ✅ Error Handling: OK
 ```
@@ -116,18 +117,17 @@ Record IDs:
   - Deploy ไปยัง Vercel
   - แจ้งขั้นตอนต่อให้ผู้ใช้
 
-### 3. Session Management 🚧
+### 3. Session Management ✅
 
-- **Status**: Not implemented yet
-- **Goal**: จัดกลุ่ม messages ตาม session โดยจบเมื่อ:
-  - พิมพ์ "........"
-  - ไม่มี input ใหม่ใน 10 วินาที
+- **Status**: ✅ Implemented
+- **Rules**: เริ่ม session ใหม่เมื่อพิมพ์ "........" หรือไม่มี input ใหม่เกิน 10 วินาที; เก็บ `session_id` และ `last_activity_at` ใน user context
+- **Validated**: ผ่าน unit/feature tests และทดสอบบน Cloud Run
 
-### 4. Auto Naming 🚧
+### 4. Auto Naming ✅
 
-- **Status**: Not implemented yet
-- **Goal**: ตั้งชื่อไฟล์/แปลงอัตโนมัติตาม CODE + run_number
-- **Pattern**: `{CODE}-{RUN}_{filename}`
+- **Status**: ✅ Implemented
+- **Pattern**: `{CODE}-{RUN}_{messageId}.{ext}`; ถ้าไม่มี CODE ใช้ `S{RUN}_{messageId}.{ext}`
+- **Scope**: ใช้กับการอัปโหลด media ไป Supabase Storage
 
 ### 5. LINE Push Notifications 🚧
 
@@ -163,7 +163,7 @@ Record IDs:
 
 ```powershell
 # 1. Health Check
-curl https://nextplot-line-webhook.vercel.app/api/health
+curl https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/health
 
 # 2. Test Webhook (text message)
 $body = @{
@@ -175,7 +175,7 @@ $body = @{
   })
 }
 $json = $body | ConvertTo-Json -Depth 6
-Invoke-RestMethod -Uri "https://nextplot-line-webhook.vercel.app/api/line/webhook" `
+Invoke-RestMethod -Uri "https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/line/webhook" `
   -Method Post -ContentType "application/json" -Body $json
 
 # 3. Query Supabase
@@ -188,7 +188,7 @@ Invoke-RestMethod -Uri "https://xhcogxcmljnczwybqvia.supabase.co/rest/v1/message
 
 | Feature | Test Case | Result | Notes |
 |---------|-----------|--------|-------|
-| Webhook | POST /api/line/webhook | ✅ | Returns 200 OK |
+| Webhook | POST /api/line/webhook | ✅ | Returns 200 OK (always-ack mode configurable) |
 | Webhook | Invalid JSON | ✅ | Returns 400 |
 | Webhook | Missing signature | ✅ | Returns 401 (if not relaxed) |
 | Supabase | Insert text | ✅ | Record created |
@@ -211,20 +211,20 @@ Invoke-RestMethod -Uri "https://xhcogxcmljnczwybqvia.supabase.co/rest/v1/message
 3. ✅ ~~ระบบ Quick Reply~~ - **เสร็จแล้ว**
 4. ✅ ~~Media upload~~ - **เสร็จแล้ว**
 5. 🚧 Deploy SQL schema ไปยัง Supabase
-6. 🚧 ระบบ Session Management (10-second timeout)
-7. 🚧 ระบบ Auto Naming
+6. ✅ ระบบ Session Management (10-second timeout)
+7. ✅ ระบบ Auto Naming
 
 ### Medium Priority
 
-8. 🚧 LINE Push Notifications
-9. 🚧 Export to Excel/PDF
-10. 🚧 Web Dashboard (simple)
+1. 🚧 LINE Push Notifications
+1. 🚧 Export to Excel/PDF
+1. 🚧 Web Dashboard (simple)
 
 ### Low Priority
 
-11. 🚧 NLP Search
-12. 🚧 OCR for Deed Numbers
-13. 🚧 Mobile App (future)
+1. 🚧 NLP Search
+1. 🚧 OCR for Deed Numbers
+1. 🚧 Mobile App (future)
 
 ---
 
@@ -234,8 +234,8 @@ Invoke-RestMethod -Uri "https://xhcogxcmljnczwybqvia.supabase.co/rest/v1/message
 
 1. ✅ ~~Deploy webhook ไปยัง Vercel~~ - **เสร็จแล้ว**
 2. ✅ ~~ตั้งค่า LINE Webhook URL~~ - **เสร็จแล้ว**
-3. 🔄 Deploy SQL schema ไปยัง Supabase
-4. 🔄 ทดสอบ end-to-end flow
+3. 🔄 Deploy SQL schema ไปยัง Supabase (พร้อมสคริปต์)
+4. 🔄 ทดสอบ end-to-end flow เพิ่มเติม (media + session transitions)
 5. 🔄 เพิ่ม monitoring และ alerting
 
 ### สำหรับ Development
@@ -247,6 +247,6 @@ Invoke-RestMethod -Uri "https://xhcogxcmljnczwybqvia.supabase.co/rest/v1/message
 
 ---
 
-**Last Updated**: 2025-10-19 22:13 UTC  
+**Last Updated**: 2025-10-30  
 **Version**: 1.0.0  
 **Status**: ✅ Core Features Production Ready

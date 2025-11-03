@@ -26,7 +26,7 @@ function Write-Log {
         default { 'White' }
     }
     Write-Host "[$timestamp] [$Level] $Message" -ForegroundColor $color
-    
+
     # Log to file
     $logFile = "logs\monitor-$(Get-Date -Format 'yyyy-MM-dd').log"
     if (-not (Test-Path 'logs')) { New-Item -Type Directory -Path 'logs' -Force | Out-Null }
@@ -35,7 +35,7 @@ function Write-Log {
 
 function Test-CloudRunHealth {
     try {
-        $url = 'https://nextplot-linebot-656d4rnjja-as.a.run.app/api/health'
+        $url = 'https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/health'
         $response = Invoke-WebRequest -Uri $url -Method Get -TimeoutSec 10 -UseBasicParsing
         if ($response.StatusCode -eq 200) {
             Write-Log "Cloud Run health check OK (Status: $($response.StatusCode))" 'SUCCESS'
@@ -86,29 +86,29 @@ function Get-WebhookStatus {
 
 function Invoke-Failover {
     param([string]$TargetService)
-    
+
     Write-Log "Initiating failover to $TargetService..." 'WARN'
-    
+
     if ($NotifyOnly) {
         Write-Log "NOTIFY ONLY MODE: Would switch to $TargetService" 'WARN'
         # TODO: Send notification (email, LINE, etc.)
         return $false
     }
-    
+
     if (-not $AutoFailover) {
         Write-Log "Auto-failover disabled. Manual intervention required." 'WARN'
         Write-Log "Run: .\switch-webhook.ps1 -Target $TargetService" 'INFO'
         # TODO: Send notification
         return $false
     }
-    
+
     try {
         Write-Log "Executing webhook switch..." 'INFO'
         & ".\switch-webhook.ps1" -Target $TargetService
-        
+
         Start-Sleep -Seconds 3
         $newStatus = Get-WebhookStatus
-        
+
         if ($newStatus -eq $TargetService) {
             Write-Log "Failover successful! Now using $TargetService" 'SUCCESS'
             $script:CurrentPrimary = $TargetService
@@ -141,22 +141,22 @@ try {
     while ($true) {
         Write-Host ""
         Write-Host "--- Health Check $(Get-Date -Format 'HH:mm:ss') ---" -ForegroundColor Cyan
-        
+
         # Check current webhook status
         $currentWebhook = Get-WebhookStatus
         Write-Log "Current webhook: $currentWebhook"
-        
+
         # Check Cloud Run
         $cloudRunOk = Test-CloudRunHealth
-        
+
         # Check Vercel
         $vercelOk = Test-VercelHealth
-        
+
         # Failover logic
         if ($currentWebhook -eq 'cloudrun' -and -not $cloudRunOk) {
             $script:CloudRunFailCount++
             Write-Log "Cloud Run failure count: $script:CloudRunFailCount / $MaxFailures" 'WARN'
-            
+
             if ($script:CloudRunFailCount -ge $MaxFailures) {
                 if ($vercelOk) {
                     Write-Log "Cloud Run failed $MaxFailures times. Initiating failover to Vercel..." 'ERROR'
@@ -179,7 +179,7 @@ try {
             # Optional: Auto-recovery to Cloud Run
             # Invoke-Failover -TargetService 'cloudrun'
         }
-        
+
         # Wait for next check
         Write-Host ""
         Write-Log "Next check in $IntervalSeconds seconds... (Press Ctrl+C to stop)"

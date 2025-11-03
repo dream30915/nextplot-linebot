@@ -1,0 +1,15 @@
+{
+  "LineToken": "MzlxATDrbgU5D84zanluRvP/kgYSyIQZyA10SOtFENVzncFKGkBbkqXZ1oEqBWAgVn7rycxfaq7JMHAbRJGUxpG3aj74S/yhFiqi/fplP7YPADGs16gX1rCSPpYK1UAvP8xSWS7GfydFd2pN4ucr2wdB04t89/1O/w1cDnyilFU=",
+  "FallbackWebhook": "https://proxy.omni-ai.app/line",
+  "KeepDays": 7,
+  "BackupProject": "C:\\Users\\msi\\Desktop\\nextplot-linebot",
+  "BackupRoot": "C:\\Users\\msi\\Documents\\OMNI-AI\\Backups",
+  "SchedulerTime": "02:00",
+  "GoogleDriveEnabled": true,
+  "GoogleDriveServiceKey": "C:\\Users\\msi\\Desktop\\service-account.json",
+  "OneDriveEnabled": true,
+  "OneDriveAccessToken": "<<<PUT_YOUR_ONEDRIVE_TOKEN_HERE>>>",
+  "OneDriveUploadFolder": "Backups/OMNI-AI",
+  "WebhookBackupEnabled": true,
+  "WebhookBackup": "https://your-webhook-url-here"
+}

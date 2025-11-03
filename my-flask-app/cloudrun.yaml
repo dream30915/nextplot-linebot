@@ -1,0 +1,17 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: my-flask-app
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+        - image: gcr.io/nextplot-linebot-475618/my-flask-app
+          env:
+            - name: MY_API_KEY
+              value: ${MY_API_KEY}
+            - name: DATABASE_URL
+              value: ${DATABASE_URL}
+            - name: PORT
+              value: ${PORT}

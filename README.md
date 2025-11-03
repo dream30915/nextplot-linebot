@@ -196,7 +196,74 @@ vercel --prod
 vercel
 ```
 
-## 🛠️ Development Workflow
+## � Session & Auto-Naming (Quick Examples)
+
+### Session Management
+
+- เริ่ม session ใหม่เมื่อพิมพ์ข้อความรีเซ็ตว่า `........` หรือไม่มีข้อความใหม่เกิน 10 วินาที
+- ระบบจะเก็บ `session_id` และ `last_activity_at` ใน user context เพื่อใช้ยึดโยงกับไฟล์และการสนทนา
+
+ตัวอย่างไทม์ไลน์:
+
+1) 12:00:00 ผู้ใช้ส่งข้อความแรก → สร้าง session 1  
+2) 12:00:05 ส่งรูปภาพ → อยู่ใน session 1  
+3) 12:00:20 เว้นเกิน 10 วินาที → ข้อความถัดไปจะเป็น session 2  
+4) ผู้ใช้พิมพ์ `........` เมื่อไรก็ได้ → บังคับขึ้น session ใหม่ทันที
+
+### Media Auto-Naming
+
+- รูปแบบชื่อไฟล์: `{CODE}-{RUN}_{messageId}.{ext}`  
+       - ตัวอย่าง: CODE = `WC-007`, RUN (session) = `3`, messageId = `abc123`, ext = `jpg`  
+       - ชื่อไฟล์ = `WC-007-3_abc123.jpg`
+- กรณีไม่มี CODE: ใช้ fallback เป็น `S{RUN}_{messageId}.{ext}`  
+       - ตัวอย่าง: `S3_abc123.jpg`
+- เส้นทางเก็บใน Supabase Storage (ตัวอย่าง): `line/YYYY/MM/DD/<filename>`
+
+### ลองทดสอบอย่างเร็ว (PowerShell)
+
+```powershell
+# ส่ง payload ตัวอย่างไปยัง Cloud Run webhook
+$url = "https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/line/webhook"
+Invoke-RestMethod -Uri $url -Method Post -ContentType "application/json" -InFile ".\scripts\payloads\ai-greeting.json" | ConvertTo-Json -Compress
+```
+
+## 🧾 Supabase Schema Deployment
+
+สคริปต์: `scripts/deploy-supabase-schema.ps1`  
+ไฟล์สคีมา: `supabase/schema.sql`
+
+ข้อกำหนดก่อนใช้งาน:
+
+- ติดตั้ง `psql` และสามารถเรียกใช้งานได้ใน PATH
+- ตั้งค่า `SUPABASE_DB_URL` ใน `.env` หรือส่ง `-DatabaseUrl` ตอนรัน
+- รูปแบบ DB URL ตัวอย่าง: `postgresql://postgres:<PASSWORD>@db.<PROJECT_REF>.supabase.co:5432/postgres?sslmode=require`
+
+ช่วยสร้างค่า SUPABASE_DB_URL อย่างเร็ว:
+
+```powershell
+# ถ้าตั้งค่า SUPABASE_URL และทราบรหัสผ่าน postgres (จาก Supabase)
+./scripts/make-supabase-db-url.ps1 -DbPassword "<YOUR_DB_PASSWORD>"
+```
+
+การรันแบบ Dry-run (ไม่แก้ฐานข้อมูลจริง):
+
+```powershell
+./scripts/deploy-supabase-schema.ps1 -DryRun
+```
+
+การ Apply จริง (เขียนสคีมาลงฐานข้อมูล):
+
+```powershell
+./scripts/deploy-supabase-schema.ps1 -Apply
+```
+
+ถ้าไม่ได้ตั้งค่าใน `.env` สามารถส่งค่า URL ตรง ๆ ได้:
+
+```powershell
+./scripts/deploy-supabase-schema.ps1 -DryRun -DatabaseUrl "postgresql://postgres:<PWD>@db.<REF>.supabase.co:5432/postgres?sslmode=require"
+```
+
+## �🛠️ Development Workflow
 
 ### 1. Local Development
 

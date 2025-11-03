@@ -40,6 +40,188 @@ class SupabaseService
     }
 
     /**
+     * Record an event into public.events
+     *
+     * Contract:
+     * - event_type: one of schema enums (e.g., 'message_received', 'media_uploaded', ...)
+     * - data: JSON-serializable payload; include external identifiers like line_user_id
+     * - user_id/property_id: optional UUIDs referencing members/properties
+     *
+     * @param string $eventType
+     * @param array<string,mixed> $data
+     * @param string|null $userId UUID of members.id (optional)
+     * @param string|null $propertyId UUID of properties.id (optional)
+     * @return array<string, mixed>|null
+     */
+    public function recordEvent(string $eventType, array $data, ?string $userId = null, ?string $propertyId = null): ?array
+    {
+        $payload = [
+            'event_type'  => $eventType,
+            'data'        => $data,
+        ];
+
+        if (!empty($userId)) {
+            $payload['user_id'] = $userId;
+        }
+        if (!empty($propertyId)) {
+            $payload['property_id'] = $propertyId;
+        }
+
+        return $this->insertRow('events', $payload);
+    }
+
+    /**
+     * Create a new property
+     *
+     * @param array<string,mixed> $data
+     * @return array<string,mixed>|null
+     */
+    public function createProperty(array $data): ?array
+    {
+        return $this->insertRow('properties', $data);
+    }
+
+    /**
+     * Update an existing property by id
+     *
+     * @param string $id
+     * @param array<string,mixed> $data
+     * @return array<string,mixed>|null
+     */
+    public function updateProperty(string $id, array $data): ?array
+    {
+        try {
+            $url = sprintf('%s/rest/v1/properties?id=eq.%s', $this->supabaseUrl, rawurlencode($id));
+
+            $response = Http::withHeaders([
+                'apikey'        => $this->anonKey,
+                'Authorization' => "Bearer {$this->serviceRole}",
+                'Content-Type'  => 'application/json',
+                'Prefer'        => 'return=representation',
+            ])->patch($url, $data);
+
+            if ($response->successful()) {
+                $rows = $response->json();
+                return $rows[0] ?? null;
+            }
+
+            Log::error('[Supabase] Update property failed', [
+                'id'     => $id,
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+            return null;
+        } catch (\Exception $e) {
+            Log::error('[Supabase] Update property error', [
+                'id'    => $id,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Finalize a property (status=finalized, set finalized_at)
+     *
+     * @param string $id
+     * @return array<string,mixed>|null
+     */
+    public function finalizeProperty(string $id): ?array
+    {
+        $nowIso = gmdate('c');
+        return $this->updateProperty($id, [
+            'status'       => 'finalized',
+            'finalized_at' => $nowIso,
+        ]);
+    }
+
+    /**
+     * Get property by id
+     *
+     * @param string $id
+     * @return array<string,mixed>|null
+     */
+    public function getPropertyById(string $id): ?array
+    {
+        try {
+            $url = sprintf('%s/rest/v1/properties?id=eq.%s&limit=1', $this->supabaseUrl, rawurlencode($id));
+            $response = Http::withHeaders([
+                'apikey'        => $this->anonKey,
+                'Authorization' => "Bearer {$this->serviceRole}",
+            ])->get($url);
+
+            if ($response->successful()) {
+                $rows = $response->json();
+                return $rows[0] ?? null;
+            }
+
+            Log::error('[Supabase] Get property failed', [
+                'id'     => $id,
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+            return null;
+        } catch (\Exception $e) {
+            Log::error('[Supabase] Get property error', [
+                'id'    => $id,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * List property summaries with optional filters
+     * Supported filters: status, code, run_number, limit
+     *
+     * @param array<string,mixed> $filters
+     * @return array<int, array<string,mixed>>
+     */
+    public function listPropertySummaries(array $filters = []): array
+    {
+        try {
+            $query = ['select' => '*'];
+            if (!empty($filters['status'])) {
+                $query['status'] = 'eq.' . $filters['status'];
+            }
+            if (!empty($filters['code'])) {
+                $query['code'] = 'eq.' . $filters['code'];
+            }
+            if (isset($filters['run_number'])) {
+                $query['run_number'] = 'eq.' . (string)$filters['run_number'];
+            }
+            if (!empty($filters['limit'])) {
+                $query['limit'] = (string) $filters['limit'];
+            } else {
+                $query['limit'] = '50';
+            }
+
+            $url = sprintf('%s/rest/v1/properties_summary?%s', $this->supabaseUrl, http_build_query($query));
+
+            $response = Http::withHeaders([
+                'apikey'        => $this->anonKey,
+                'Authorization' => "Bearer {$this->serviceRole}",
+            ])->get($url);
+
+            if ($response->successful()) {
+                $rows = $response->json();
+                return is_array($rows) ? $rows : [];
+            }
+
+            Log::error('[Supabase] List property summaries failed', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+            return [];
+        } catch (\Exception $e) {
+            Log::error('[Supabase] List property summaries error', [
+                'error' => $e->getMessage(),
+            ]);
+            return [];
+        }
+    }
+
+    /**
      * Insert a row into a Supabase table via PostgREST
      *
      * @param string $table Table name

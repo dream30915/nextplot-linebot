@@ -1,6 +1,6 @@
 # ✅ NextPlot LINE Bot - สรุปการทำงานเสร็จสมบูรณ์
 
-**วันที่:** 20 ตุลาคม 2025  
+**วันที่:** 30 ตุลาคม 2025  
 **สถานะ:** 🟢 พร้อมใช้งาน Production
 
 ---
@@ -82,7 +82,7 @@
 
 ```
 ✅ ตั้งเป็น: Cloud Run (Production)
-URL: https://nextplot-linebot-656d4rnjja-as.a.run.app/api/line/webhook
+URL: https://nextplot-linebot-546634969975.asia-southeast1.run.app/api/line/webhook
 Status: Active
 ```
 
@@ -90,7 +90,7 @@ Status: Active
 
 | Service | Status | URL |
 |---------|--------|-----|
-| **Cloud Run** | 🟢 Running | <https://nextplot-linebot-656d4rnjja-as.a.run.app> |
+| **Cloud Run** | 🟢 Running | <https://nextplot-linebot-546634969975.asia-southeast1.run.app> |
 | **Vercel** | 🟢 Running | <https://nextplotlinebot.vercel.app> |
 | **Supabase** | 🟢 Connected | <https://xhcogxcmljnczwybqvia.supabase.co> |
 | **LINE Bot** | 🟢 Active | NextPlot |
@@ -283,7 +283,7 @@ vercel --prod                                   # Vercel
 ### Important URLs
 
 ```
-Cloud Run:  https://nextplot-linebot-656d4rnjja-as.a.run.app
+Cloud Run:  https://nextplot-linebot-546634969975.asia-southeast1.run.app
 Vercel:     https://nextplotlinebot.vercel.app
 Supabase:   https://xhcogxcmljnczwybqvia.supabase.co
 LINE:       https://developers.line.biz/console/
@@ -325,6 +325,6 @@ LINE:       https://developers.line.biz/console/
 ---
 
 **เอกสารโดย:** GitHub Copilot  
-**วันที่อัปเดต:** 20 ตุลาคม 2025  
+**วันที่อัปเดต:** 30 ตุลาคม 2025  
 **เวอร์ชัน:** 1.0.0  
 **สถานะ:** ✅ COMPLETE

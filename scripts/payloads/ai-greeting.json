@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "type": "message",
+      "replyToken": "00000000000000000000000000000000",
+      "source": {
+        "userId": "U0123456789abcdef",
+        "type": "user"
+      },
+      "timestamp": 1700000000000,
+      "message": {
+        "id": "1234567890",
+        "type": "text",
+        "text": "ทดสอบ AI ตอบ"
+      }
+    }
+  ]
+}
