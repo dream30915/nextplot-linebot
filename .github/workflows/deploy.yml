@@ -1,0 +1,51 @@
+﻿name: 🚀 Deploy OMNI-AI to Cloud Run (Auto Tag Trigger)
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🧩 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: ⚙️ Setup Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+        export_default_credentials: true
+
+    - name: 🔍 Run basic PowerShell validation
+      uses: Amadevus/pwsh-script@v2
+      with:
+        script: |
+          Write-Host "Checking syntax for .ps1 files..."
+          Get-ChildItem -Recurse -Include *.ps1 | ForEach-Object {
+            try {
+              [System.Management.Automation.PSParser]::Tokenize((Get-Content $_ -Raw), [ref]$null) | Out-Null
+              Write-Host "✅ Syntax OK: $($_.FullName)"
+            } catch {
+              Write-Error "❌ Syntax error in $($_.FullName): $_"
+              exit 1
+            }
+          }
+
+    - name: 🧠 Deploy to Cloud Run
+      run: |
+        gcloud run deploy omni-ai-nextplot \
+          --source . \
+          --region asia-southeast1 \
+          --allow-unauthenticated \
+          --quiet
+
+    - name: 💬 LINE Notify
+      if: always()
+      run: |
+        curl -X POST -H "Authorization: Bearer ${{ secrets.LINE_TOKEN }}" \
+        -F "message=✅ Deploy complete: $GITHUB_REF_NAME" \
+        https://notify-api.line.me/api/notify
