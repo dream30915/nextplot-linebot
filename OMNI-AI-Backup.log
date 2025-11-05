@@ -1,0 +1,21 @@
+﻿2025-11-03 06:06:08 [INFO] Starting backup to C:\Users\msi\Documents\OMNI-AI\Backups\Backup_2025-11-03_06-06-08.zip
+2025-11-03 06:06:52 [INFO] Exporting VSCode extensions list
+2025-11-03 06:07:25 [INFO] Starting backup to C:\Users\msi\Documents\OMNI-AI\Backups\Backup_2025-11-03_06-07-24.zip
+2025-11-03 06:08:17 [INFO] Exporting VSCode extensions list
+2025-11-03 06:08:20 [INFO] Starting backup to C:\Users\msi\Documents\OMNI-AI\Backups\Backup_2025-11-03_06-08-20.zip
+2025-11-03 06:09:13 [INFO] Creating scheduled task: OMNI-AI-AutoBackup at 02:00
+2025-11-03 06:09:13 [INFO] Scheduled task created.
+2025-11-03 06:09:14 [ERROR] LINE notify failed: The remote name could not be resolved: 'notify-api.line.me'
+2025-11-03 06:09:20 [INFO] Exporting VSCode extensions list
+2025-11-03 06:25:08 [INFO] Backup completed: C:\Users\msi\Documents\OMNI-AI\Backups\Backup_2025-11-03_06-08-20.zip
+2025-11-03 06:25:08 [INFO] Saved restore path to C:\Users\msi\Desktop\nextplot-linebot\OMNI-AI-RestorePath.txt
+2025-11-03 06:25:08 [ERROR] LINE notify failed: The remote name could not be resolved: 'notify-api.line.me'
+2025-11-03 06:25:21 [INFO] Crash analyzer: no obvious exceptions found.
+2025-11-03 06:26:34 [INFO] Starting backup: C:\Users\msi\Documents\OMNI-AI\Backups\Backup_2025-11-03_06-26-34.zip
+2025-11-03 06:46:44 [INFO] Backup completed successfully: C:\Users\msi\Documents\OMNI-AI\Backups\Backup_2025-11-03_06-26-34.zip
+2025-11-03 06:46:44 [INFO] Testing network connectivity...
+2025-11-03 06:46:44 [WARN] Network test failed: notify-api.line.me unreachable
+2025-11-03 06:46:44 [WARN] LINE notify attempt 1 failed: The remote name could not be resolved: 'notify-api.line.me'
+2025-11-03 06:46:47 [WARN] LINE notify attempt 2 failed: The remote name could not be resolved: 'notify-api.line.me'
+2025-11-03 06:46:51 [WARN] LINE notify attempt 3 failed: The remote name could not be resolved: 'notify-api.line.me'
+2025-11-03 06:46:54 [ERROR] LINE notify failed after 3 attempts.

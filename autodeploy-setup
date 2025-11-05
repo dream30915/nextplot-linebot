@@ -1,0 +1,112 @@
+# === OMNI-AI FULL AUTO DEPLOY FOR NEXTPLOT LINEBOT ===
+$ErrorActionPreference = "Stop"
+
+$Repo = "https://github.com/dream30915/omni-ai-nextplot.git"
+$Temp = "$env:TEMP\nextplot_auto_setup"
+if (Test-Path $Temp) { Remove-Item $Temp -Recurse -Force }
+New-Item -ItemType Directory -Path $Temp | Out-Null
+Set-Location $Temp
+
+Write-Host "🌐 Cloning repository..."
+git clone $Repo .
+git checkout -b autodeploy-fix
+
+# === 1. โฟลเดอร์ระบบ CI/CD ===
+New-Item -ItemType Directory -Force -Path ".github\workflows" | Out-Null
+New-Item -ItemType Directory -Force -Path "scripts" | Out-Null
+New-Item -ItemType Directory -Force -Path ".git\hooks" | Out-Null
+
+# === 2. Workflow Deploy ===
+$Workflow = @'
+name: 🚀 Deploy NextPlot LineBot (Full Auto CI/CD)
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout
+        uses: actions/checkout@v4
+
+      - name: ☁️ Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          export_default_credentials: true
+
+      - name: 🧪 Run PowerShell tests
+        uses: Amadevus/pwsh-script@v2
+        with:
+          script: |
+            Write-Host "Running syntax + logic tests..."
+            Get-ChildItem -Recurse -Include *.ps1 | ForEach-Object {
+              [System.Management.Automation.PSParser]::Tokenize((Get-Content $_ -Raw), [ref]$null) | Out-Null
+            }
+            if (Test-Path "./scripts/test.ps1") {
+              pwsh -File "./scripts/test.ps1"
+            }
+
+      - name: 🐳 Build Docker image
+        run: |
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/nextplot-linebot:${{ github.ref_name }} .
+          gcloud auth configure-docker --quiet
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/nextplot-linebot:${{ github.ref_name }}
+
+      - name: 🚀 Deploy to Cloud Run
+        run: |
+          gcloud run deploy nextplot-linebot \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/nextplot-linebot:${{ github.ref_name }} \
+            --region asia-east1 \
+            --allow-unauthenticated \
+            --quiet
+
+      - name: 🔔 LINE Notify
+        if: always()
+        run: |
+          STATUS="✅ SUCCESS"
+          if [ "${{ job.status }}" != "success" ]; then STATUS="❌ FAILED"; fi
+          curl -X POST -H "Authorization: Bearer ${{ secrets.LINE_TOKEN }}" \
+          -F "message=${STATUS}: Deploy tag ${{ github.ref_name }} completed at $(date '+%Y-%m-%d %H:%M:%S')" \
+          https://notify-api.line.me/api/notify
+'@
+Set-Content ".github\workflows\deploy.yml" $Workflow -Encoding UTF8
+
+# === 3. Push-auto-tag.ps1 ===
+$PushScript = @'
+Write-Host "[Auto-Tag] Checking latest tag..."
+$tags = git ls-remote --tags origin | ForEach-Object { ($_ -split "/")[-1] } | Where-Object { $_ -match "^v\d+\.\d+(\.\d+)?$" }
+if ($tags.Count -eq 0) { $NewTag = "v1.0.0" } else {
+  $LatestTag = ($tags | Sort-Object { [version]($_ -replace "[vV]", "") } | Select-Object -Last 1)
+  $v = [version]($LatestTag -replace "[vV]", "")
+  $NewTag = "v{0}.{1}.{2}" -f $v.Major, $v.Minor, ($v.Build + 1)
+}
+git tag -a $NewTag -m "Auto tag created: $NewTag"
+git push origin $NewTag
+'@
+Set-Content "scripts\push-auto-tag.ps1" $PushScript -Encoding UTF8
+
+# === 4. Git hook ===
+$Hook = @'
+#!/usr/bin/env bash
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" = "main" ]; then
+  pwsh -NoProfile -ExecutionPolicy Bypass -File "scripts/push-auto-tag.ps1"
+else
+  echo "[Auto-Tag] Skip: Not on main branch ($CURRENT_BRANCH)"
+fi
+'@
+Set-Content ".git\hooks\post-push" $Hook -Encoding UTF8
+
+# === 5. Commit & Push ===
+git add .
+git commit -m "chore(ci): fix & finalize full auto-deploy (Cloud Run + LINE Notify)"
+git push origin autodeploy-fix
+
+Write-Host "`n✅ พร้อมใช้งาน! Branch 'autodeploy-fix' ถูก push ขึ้น GitHub แล้ว"
+Write-Host "👉 ตรวจดู workflow ได้ที่: https://github.com/dream30915/omni-ai-nextplot/actions"
